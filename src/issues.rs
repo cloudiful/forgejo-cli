@@ -7,6 +7,7 @@ use eyre::{Context, OptionExt, eyre};
 use forgejo_api::Forgejo;
 use forgejo_api::structs::{
     Comment, CreateIssueCommentOption, CreateIssueOption, EditIssueOption, IssueGetCommentsQuery,
+    IssueMeta,
 };
 
 use crate::repo::{RepoArg, RepoInfo, RepoName};
@@ -131,6 +132,10 @@ pub enum IssueSubcommand {
     },
     #[clap(about = h!("cmd-issue-browse"))]
     Browse { id: IssueId },
+    #[clap(about = h!("cmd-issue-depend"))]
+    Depend(IssueDependCommand),
+    #[clap(about = h!("cmd-issue-block"))]
+    Block(IssueBlockCommand),
 }
 
 #[derive(Clone, Debug)]
@@ -235,6 +240,64 @@ pub enum ViewCommand {
     Assignees,
 }
 
+#[derive(Args, Clone, Debug)]
+pub struct IssueDependCommand {
+    #[clap(subcommand)]
+    pub command: IssueDependSubcommand,
+}
+
+#[derive(Subcommand, Clone, Debug)]
+pub enum IssueDependSubcommand {
+    #[clap(about = h!("cmd-depend-add"))]
+    Add {
+        #[clap(help = h!("arg-issue-depend-add-issue"))]
+        issue: IssueId,
+        #[clap(help = h!("arg-depend-add-target"))]
+        target: Vec<IssueId>,
+    },
+    #[clap(about = h!("cmd-depend-remove"))]
+    Remove {
+        #[clap(help = h!("arg-issue-depend-remove-issue"))]
+        issue: IssueId,
+        #[clap(help = h!("arg-depend-remove-target"))]
+        target: Vec<IssueId>,
+    },
+    #[clap(about = h!("cmd-depend-list"))]
+    List {
+        #[clap(help = h!("arg-issue-depend-list-issue"))]
+        issue: IssueId,
+    },
+}
+
+#[derive(Args, Clone, Debug)]
+pub struct IssueBlockCommand {
+    #[clap(subcommand)]
+    pub command: IssueBlockSubcommand,
+}
+
+#[derive(Subcommand, Clone, Debug)]
+pub enum IssueBlockSubcommand {
+    #[clap(about = h!("cmd-block-add"))]
+    Add {
+        #[clap(help = h!("arg-issue-block-add-issue"))]
+        issue: IssueId,
+        #[clap(help = h!("arg-issue-block-add-target"))]
+        target: Vec<IssueId>,
+    },
+    #[clap(about = h!("cmd-block-remove"))]
+    Remove {
+        #[clap(help = h!("arg-issue-block-remove-issue"))]
+        issue: IssueId,
+        #[clap(help = h!("arg-block-remove-target"))]
+        target: Vec<IssueId>,
+    },
+    #[clap(about = h!("cmd-block-list"))]
+    List {
+        #[clap(help = h!("arg-issue-block-list-issue"))]
+        issue: IssueId,
+    },
+}
+
 impl IssueCommand {
     pub async fn run(self, keys: &mut crate::KeyInfo, host_name: Option<&str>) -> eyre::Result<()> {
         use IssueSubcommand::*;
@@ -303,6 +366,26 @@ impl IssueCommand {
                 body,
                 body_file,
             } => add_comment(repo, &api, issue.number, body, body_file).await?,
+            Depend(cmd) => match cmd.command {
+                IssueDependSubcommand::Add { issue, target } => {
+                    add_dependencies(repo, &api, issue, target).await?
+                }
+                IssueDependSubcommand::Remove { issue, target } => {
+                    remove_dependencies(repo, &api, issue, target).await?
+                }
+                IssueDependSubcommand::List { issue } => {
+                    view_dependencies(repo, &api, issue).await?
+                }
+            },
+            Block(cmd) => match cmd.command {
+                IssueBlockSubcommand::Add { issue, target } => {
+                    add_blocks(repo, &api, issue, target).await?
+                }
+                IssueBlockSubcommand::Remove { issue, target } => {
+                    remove_blocks(repo, &api, issue, target).await?
+                }
+                IssueBlockSubcommand::List { issue } => view_blocks(repo, &api, issue).await?,
+            },
         }
         Ok(())
     }
@@ -318,6 +401,7 @@ impl IssueCommand {
             | Close { issue, .. }
             | Comment { issue, .. }
             | Browse { id: issue, .. } => issue.repo.as_ref(),
+            Depend(_) | Block(_) => None,
         }
     }
 
@@ -337,6 +421,11 @@ impl IssueCommand {
                 "can't figure out what repo to access, try specifying with `{{owner}}/{{repo}}#{}`",
                 issue.number
             ),
+            Depend(_) | Block(_) => {
+                eyre::eyre!(
+                    "can't figure out what repo to access, try specifying it via `{{owner}}/{{repo}}#{{number}}` on the issue or target arguments"
+                )
+            }
         }
     }
 }
@@ -1069,4 +1158,184 @@ pub async fn close_issue(
     );
 
     Ok(())
+}
+
+fn host_repo<'a>(issue: &'a IssueId, fallback: &'a RepoName) -> (&'a str, &'a str) {
+    match &issue.repo {
+        Some(r) => (r.owner(), r.name()),
+        None => (fallback.owner(), fallback.name()),
+    }
+}
+
+fn issue_meta_for(target: &IssueId, host_owner: &str, host_repo: &str) -> IssueMeta {
+    match &target.repo {
+        Some(r) => IssueMeta {
+            index: Some(target.number),
+            owner: Some(r.owner().to_string()),
+            repo: Some(r.name().to_string()),
+        },
+        None => IssueMeta {
+            index: Some(target.number),
+            owner: Some(host_owner.to_string()),
+            repo: Some(host_repo.to_string()),
+        },
+    }
+}
+
+async fn print_issue_list(
+    header_msg: &str,
+    host_owner: &str,
+    host_repo_name: &str,
+    host_number: i64,
+    empty_msg: &str,
+    list: Vec<forgejo_api::structs::Issue>,
+) -> eyre::Result<()> {
+    ftl_println!(
+        header_msg,
+        owner = host_owner,
+        repo = host_repo_name,
+        number = host_number,
+    );
+    if list.is_empty() {
+        ftl_println!(empty_msg);
+        return Ok(());
+    }
+    for issue in list {
+        let number = issue
+            .number
+            .ok_or_else(|| eyre::eyre!("issue does not have number"))?;
+        let title = issue
+            .title
+            .as_deref()
+            .ok_or_else(|| eyre::eyre!("issue does not have title"))?;
+        use forgejo_api::structs::StateType;
+        let state = match (issue.state, &issue.pull_request) {
+            (Some(StateType::Open), Some(pr)) if pr.draft == Some(true) => "draft",
+            (Some(StateType::Closed), Some(pr)) if pr.merged == Some(true) => "merged",
+            (Some(StateType::Closed), _) => "closed",
+            _ => "open",
+        };
+        ftl_println!("msg-issue-dep-list-entry", number, title, state);
+    }
+    Ok(())
+}
+
+pub async fn add_dependencies(
+    repo: &RepoName,
+    api: &Forgejo,
+    issue: IssueId,
+    targets: Vec<IssueId>,
+) -> eyre::Result<()> {
+    if targets.is_empty() {
+        eyre::bail!("at least one target issue is required");
+    }
+    let (host_owner, host_repo_name) = host_repo(&issue, repo);
+    let count = targets.len();
+    for target in &targets {
+        let meta = issue_meta_for(target, host_owner, host_repo_name);
+        api.issue_create_issue_dependencies(host_owner, host_repo_name, issue.number, meta)
+            .await?;
+    }
+    ftl_println!("msg-issue-depend-add-success", count, issue = issue.number,);
+    Ok(())
+}
+
+pub async fn remove_dependencies(
+    repo: &RepoName,
+    api: &Forgejo,
+    issue: IssueId,
+    targets: Vec<IssueId>,
+) -> eyre::Result<()> {
+    if targets.is_empty() {
+        eyre::bail!("at least one target issue is required");
+    }
+    let (host_owner, host_repo_name) = host_repo(&issue, repo);
+    let count = targets.len();
+    for target in &targets {
+        let meta = issue_meta_for(target, host_owner, host_repo_name);
+        api.issue_remove_issue_dependencies(host_owner, host_repo_name, issue.number, meta)
+            .await?;
+    }
+    ftl_println!(
+        "msg-issue-depend-remove-success",
+        count,
+        issue = issue.number,
+    );
+    Ok(())
+}
+
+pub async fn view_dependencies(repo: &RepoName, api: &Forgejo, issue: IssueId) -> eyre::Result<()> {
+    let (host_owner, host_repo_name) = host_repo(&issue, repo);
+    let list = api
+        .issue_list_issue_dependencies(host_owner, host_repo_name, issue.number)
+        .await?;
+    print_issue_list(
+        "msg-issue-depend-list-header",
+        host_owner,
+        host_repo_name,
+        issue.number,
+        "msg-issue-depend-list-empty",
+        list,
+    )
+    .await
+}
+
+pub async fn add_blocks(
+    repo: &RepoName,
+    api: &Forgejo,
+    issue: IssueId,
+    targets: Vec<IssueId>,
+) -> eyre::Result<()> {
+    if targets.is_empty() {
+        eyre::bail!("at least one target issue is required");
+    }
+    let (host_owner, host_repo_name) = host_repo(&issue, repo);
+    let count = targets.len();
+    for target in &targets {
+        let meta = issue_meta_for(target, host_owner, host_repo_name);
+        api.issue_create_issue_blocking(host_owner, host_repo_name, issue.number, meta)
+            .await?;
+    }
+    ftl_println!("msg-issue-block-add-success", count, issue = issue.number,);
+    Ok(())
+}
+
+pub async fn remove_blocks(
+    repo: &RepoName,
+    api: &Forgejo,
+    issue: IssueId,
+    targets: Vec<IssueId>,
+) -> eyre::Result<()> {
+    if targets.is_empty() {
+        eyre::bail!("at least one target issue is required");
+    }
+    let (host_owner, host_repo_name) = host_repo(&issue, repo);
+    let count = targets.len();
+    for target in &targets {
+        let meta = issue_meta_for(target, host_owner, host_repo_name);
+        api.issue_remove_issue_blocking(host_owner, host_repo_name, issue.number, meta)
+            .await?;
+    }
+    ftl_println!(
+        "msg-issue-block-remove-success",
+        count,
+        issue = issue.number,
+    );
+    Ok(())
+}
+
+pub async fn view_blocks(repo: &RepoName, api: &Forgejo, issue: IssueId) -> eyre::Result<()> {
+    let (host_owner, host_repo_name) = host_repo(&issue, repo);
+    let list = api
+        .issue_list_blocks(host_owner, host_repo_name, issue.number)
+        .await?;
+    print_issue_list(
+        "msg-issue-block-list-header",
+        host_owner,
+        host_repo_name,
+        issue.number,
+        "msg-issue-block-list-empty",
+        list,
+    )
+    .await
 }
