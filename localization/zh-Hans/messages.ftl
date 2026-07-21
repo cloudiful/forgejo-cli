@@ -126,12 +126,12 @@ msg-org-team-delete-confirmation = 您确定要删除 { STYLE("bold") }{ $org }/
         n
 msg-org-team-repo-list-no_results = 无结果。
 msg-org-team-repo-list-page_number = 第 { $page } 页，共 { $total } 页
-msg-org-team-repo-add-success = 已将 { STYLE("bold") }{ $org }/{ $repo }{ STYLE("reset") } 添加到团队 { STYLE("bold", "bright_blue") }{ $team }{ STYLE("reset") }
-msg-org-team-repo-rm-success = 已将 { STYLE("bold") }{ $org }/{ $repo }{ STYLE("reset") } 从团队 { STYLE("bold", "bright_blue") }{ $team }{ STYLE("reset") } 中移除
+msg-org-team-repo-add-success = 已将 { STYLE("bold") }{ $org }/{ $repo }{ STYLE("reset") } 添加到团队 { STYLE("bold", "bright-blue") }{ $team }{ STYLE("reset") }
+msg-org-team-repo-rm-success = 已将 { STYLE("bold") }{ $org }/{ $repo }{ STYLE("reset") } 从团队 { STYLE("bold", "bright-blue") }{ $team }{ STYLE("reset") } 中移除
 msg-org-team-member-list-no_results = 无结果。
 msg-org-team-member-list-page_number = 第 { $page } 页，共 { $total } 页
-msg-org-team-member-add-success = 已将 { STYLE("bold", "bright-cyan") }{ $user }{ STYLE("reset") } 添加到团队 { STYLE("bold", "bright_blue") }{ $team }{ STYLE("reset") }
-msg-org-team-member-rm-success = 已将 { STYLE("bold", "bright-cyan") }{ $user }{ STYLE("reset") } 从团队 { STYLE("bold", "bright_blue") }{ $team }{ STYLE("reset") } 中移除
+msg-org-team-member-add-success = 已将 { STYLE("bold", "bright-cyan") }{ $user }{ STYLE("reset") } 添加到团队 { STYLE("bold", "bright-blue") }{ $team }{ STYLE("reset") }
+msg-org-team-member-rm-success = 已将 { STYLE("bold", "bright-cyan") }{ $user }{ STYLE("reset") } 从团队 { STYLE("bold", "bright-blue") }{ $team }{ STYLE("reset") } 中移除
 msg-issue-create-no_templates = { $owner }/{ $repo } 没有任何问题模板
 msg-issue-create-templates_required =
     { $owner }/{ $repo } 要求使用模板。
@@ -234,7 +234,7 @@ msg-pr-status-header =
     { $state ->
         [draft] { STYLE("light-grey") }草稿{ STYLE("reset") } { -dash } 无法合并草稿 PR
         [open]
-            { STYLE("bright_green") }开启{ STYLE("reset") } { -dash } { $mergeable ->
+            { STYLE("bright-green") }开启{ STYLE("reset") } { -dash } { $mergeable ->
                *[yes] 可以合并
                 [no] { STYLE("bright-red") }合并冲突{ STYLE("reset") }
             }
@@ -243,12 +243,12 @@ msg-pr-status-header =
     }
 msg-pr-status-entry =
     { $state ->
-        [success] { STYLE("bright_green") }成功{ STYLE("reset") }
+        [success] { STYLE("bright-green") }成功{ STYLE("reset") }
         [pending] { STYLE("yellow") }待处理{ STYLE("reset") }
-        [warning] { STYLE("bright_yellow") }警告{ STYLE("reset") }
-        [failure] { STYLE("bright_red") }失败{ STYLE("reset") }
+        [warning] { STYLE("bright-yellow") }警告{ STYLE("reset") }
+        [failure] { STYLE("bright-red") }失败{ STYLE("reset") }
         [skipped] { STYLE("grey") }跳过{ STYLE("RESET") }
-        [error] { STYLE("bright_red") }错误{ STYLE("reset") }
+        [error] { STYLE("bright-red") }错误{ STYLE("reset") }
        *[other] 未知
     } { -dash } { $context }
 msg-pr-review-list-none = 无评论。
@@ -478,19 +478,19 @@ msg-activity-pushed_commit = { STYLE("bold") }{ $actor }{ STYLE("reset") } 推�
 msg-activity-created_issue = { STYLE("bold") }{ $actor }{ STYLE("reset") } 开启了问题 { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
 msg-activity-created_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } 创建了拉取请求 { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
 msg-activity-transferred_repo = { STYLE("bold") }{ $actor }{ STYLE("reset") } 将仓库 { STYLE("bold", "yellow") }"{ $old_name }"{ STYLE("reset") } 转移至 { STYLE("bold", "yellow") }{ $new_name }{ STYLE("reset") }
-msg-activity-pushed_tag = { STYLE("bold") }{ $actor }{ STYLE("reset") } 将标签 { STYLE("bold", "bright_cyan") }{ $tag_name }{ STYLE("reset") } 推送到 { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") }
+msg-activity-pushed_tag = { STYLE("bold") }{ $actor }{ STYLE("reset") } 将标签 { STYLE("bold", "bright-cyan") }{ $tag_name }{ STYLE("reset") } 推送到 { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") }
 msg-activity-commented_issue = { STYLE("bold") }{ $actor }{ STYLE("reset") } 评论了问题 { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
 msg-activity-merged_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } 合并了拉取请求 { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
 msg-activity-closed_issue = { STYLE("bold") }{ $actor }{ STYLE("reset") } 关闭了问题 { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
 msg-activity-reopened_issue = { STYLE("bold") }{ $actor }{ STYLE("reset") } 重新开启了问题 { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
 msg-activity-closed_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } 关闭了 PR { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
 msg-activity-reopened_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } 重新开启了 PR { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
-msg-activity-deleted_tag = { STYLE("bold") }{ $actor }{ STYLE("reset") } 从 { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") } 删除了标签 { STYLE("bold", "bright_cyan") }{ $tag_name }{ STYLE("reset") }
-msg-activity-deleted_branch = { STYLE("bold") }{ $actor }{ STYLE("reset") } 从 { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") } 删除了分支 { STYLE("bold", "bright_cyan") }{ $branch }{ STYLE("reset") }
+msg-activity-deleted_tag = { STYLE("bold") }{ $actor }{ STYLE("reset") } 从 { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") } 删除了标签 { STYLE("bold", "bright-cyan") }{ $tag_name }{ STYLE("reset") }
+msg-activity-deleted_branch = { STYLE("bold") }{ $actor }{ STYLE("reset") } 从 { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") } 删除了分支 { STYLE("bold", "bright-cyan") }{ $branch }{ STYLE("reset") }
 msg-activity-approved_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } 已批准 { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
 msg-activity-rejected_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } 对 { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") } 提出了更改建议
 msg-activity-commented_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } 评论了拉取请求 { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
-msg-activity-created_release = { STYLE("bold") }{ $actor }{ STYLE("reset") } 在 { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") } 上创建了版本发布 { STYLE("bold", "bright_cyan") }{ $release_name }{ STYLE("reset") }
+msg-activity-created_release = { STYLE("bold") }{ $actor }{ STYLE("reset") } 在 { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") } 上创建了版本发布 { STYLE("bold", "bright-cyan") }{ $release_name }{ STYLE("reset") }
 msg-user-edit-name-removal_hint = 使用 --unset 从您的个人资料中移除姓名
 msg-user-edit-pronouns-removal_hint = 使用 --unset 从您的个人资料中移除代词
 msg-user-edit-location-removal_hint = 使用 --unset 从您的个人资料中移除位置信息

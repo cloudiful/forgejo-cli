@@ -95,12 +95,12 @@ msg-org-team-delete-confirmation = sina wile ala wile weka e { STYLE("bold") }ku
         a
 msg-org-team-repo-list-no_results = alasa ni la kulupu ala li lon
 msg-org-team-repo-list-page_number = ni li kulupu nanpa { $page }. kulupu { $total } li lon
-msg-org-team-repo-add-success = { STYLE("bold", "bright_blue") }kulupu { $team }{ STYLE("reset") } li kama mama e { STYLE("bold") } poki { $org }/{ $repo }{ STYLE("reset") }
-msg-org-team-repo-rm-success = { STYLE("bold", "bright_blue") }kulupu { $team }{ STYLE("reset") } li kama mama ala e { STYLE("bold") } poki { $org }/{ $repo }{ STYLE("reset") }
+msg-org-team-repo-add-success = { STYLE("bold", "bright-blue") }kulupu { $team }{ STYLE("reset") } li kama mama e { STYLE("bold") } poki { $org }/{ $repo }{ STYLE("reset") }
+msg-org-team-repo-rm-success = { STYLE("bold", "bright-blue") }kulupu { $team }{ STYLE("reset") } li kama mama ala e { STYLE("bold") } poki { $org }/{ $repo }{ STYLE("reset") }
 msg-org-team-member-list-no_results = alasa ni la jan ala li lon
 msg-org-team-member-list-page_number = ni li kulupu nanpa { $page }. kulupu { $total } li lon
-msg-org-team-member-add-success = { STYLE("bold", "bright-cyan") }{ $user }{ STYLE("reset") } li kama lon { STYLE("bold", "bright_blue") }kulupu { $team }{ STYLE("reset") }
-msg-org-team-member-rm-success = { STYLE("bold", "bright-cyan") }{ $user }{ STYLE("reset") } li weka tan { STYLE("bold", "bright_blue") }kulupu { $team }{ STYLE("reset") }
+msg-org-team-member-add-success = { STYLE("bold", "bright-cyan") }{ $user }{ STYLE("reset") } li kama lon { STYLE("bold", "bright-blue") }kulupu { $team }{ STYLE("reset") }
+msg-org-team-member-rm-success = { STYLE("bold", "bright-cyan") }{ $user }{ STYLE("reset") } li weka tan { STYLE("bold", "bright-blue") }kulupu { $team }{ STYLE("reset") }
 msg-issue-create-success = sina open e toki nanpa { $number }: { $title }
 msg-issue-view-header =
     toki { STYLE("yellow") }"{ $title }"{ STYLE("dark-grey") } li nanpa { $number }{ STYLE("reset") }
@@ -209,7 +209,7 @@ msg-pr-status-header =
     { $state ->
         [draft] { STYLE("light-grey") }ona li sin{ STYLE("reset") } { -dash } la sina ken ala wan e ona
         [open]
-            { STYLE("bright_green") }ona li pini ala{ STYLE("reset") } { $mergeable ->
+            { STYLE("bright-green") }ona li pini ala{ STYLE("reset") } { $mergeable ->
                *[yes] li ken kama wa
                 [no] { STYLE("bright-red") } li ken ala kama wan{ STYLE("reset") }
             }
@@ -218,11 +218,11 @@ msg-pr-status-header =
     }
 msg-pr-status-entry =
     { $state ->
-        [success] { STYLE("bright_green") }pona{ STYLE("reset") }
+        [success] { STYLE("bright-green") }pona{ STYLE("reset") }
         [pending] { STYLE("yellow") }open ala{ STYLE("reset") }
-        [warning] { STYLE("bright_yellow") }ike ken { STYLE("reset") }
-        [failure] { STYLE("bright_red") }ike{ STYLE("reset") }
-        [error] { STYLE("bright_red") }pakala{ STYLE("reset") }
+        [warning] { STYLE("bright-yellow") }ike ken { STYLE("reset") }
+        [failure] { STYLE("bright-red") }ike{ STYLE("reset") }
+        [error] { STYLE("bright-red") }pakala{ STYLE("reset") }
        *[other] nasa
     } { -dash } { $context }
 msg-pr-create-cross_instance = ante wile o lon ma wan taso; mama li lon ma { $base_instance }, taso ante li lon ma { $head_instance }
@@ -326,11 +326,11 @@ msg-user-edit-website-removal_hint = sina wile weka e lipu linluwi sina tan lipu
 msg-user-edit-location-removal_hint = sina wile weka e nimi pi ma sina tan lipu sina la o kepeken nimi `--unset`
 msg-user-edit-pronouns-removal_hint = sina wile weka e nimi sina pi sama nimi "ona" tan lipu sina la o kepeken nimi `--unset`
 msg-user-edit-name-removal_hint = sina wile weka e nimi sina tan lipu sina la o kepeken nimi `--unset`
-msg-activity-created_release = { STYLE("bold") }{ $actor }{ STYLE("reset") } li open e pana { STYLE("bold", "bright_cyan") }{ $release_name }{ STYLE("reset") } lon poki { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") }
+msg-activity-created_release = { STYLE("bold") }{ $actor }{ STYLE("reset") } li open e pana { STYLE("bold", "bright-cyan") }{ $release_name }{ STYLE("reset") } lon poki { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") }
 msg-activity-commented_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } li toki lon ante wile { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
 msg-activity-rejected_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } li pana e ante ken tawa ante wile { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
-msg-activity-deleted_branch = { STYLE("bold") }{ $actor }{ STYLE("reset") } li weka e linja { STYLE("bold", "bright_cyan") }{ $branch }{ STYLE("reset") } tan poki { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") }
-msg-activity-deleted_tag = { STYLE("bold") }{ $actor }{ STYLE("reset") } li weka e kule { STYLE("bold", "bright_cyan") }{ $tag_name }{ STYLE("reset") } tan poki { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") }
+msg-activity-deleted_branch = { STYLE("bold") }{ $actor }{ STYLE("reset") } li weka e linja { STYLE("bold", "bright-cyan") }{ $branch }{ STYLE("reset") } tan poki { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") }
+msg-activity-deleted_tag = { STYLE("bold") }{ $actor }{ STYLE("reset") } li weka e kule { STYLE("bold", "bright-cyan") }{ $tag_name }{ STYLE("reset") } tan poki { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") }
 msg-activity-reopened_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } li open sin e ante wile { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
 msg-activity-closed_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } li pini e ante wile { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
 msg-activity-reopened_issue = { STYLE("bold") }{ $actor }{ STYLE("reset") } li open sin e toki { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }

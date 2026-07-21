@@ -126,12 +126,12 @@ msg-org-team-delete-confirmation = Sind Sie sicher, dass Sie { STYLE("bold") }{ 
         n
 msg-org-team-repo-list-no_results = Keine Ergebnisse.
 msg-org-team-repo-list-page_number = Seite { $page } von { $total }
-msg-org-team-repo-add-success = { STYLE("bold") }{ $org }/{ $repo }{ STYLE("reset") } zu Team { STYLE("bold", "bright_blue") }{ $team }{ STYLE("reset") } hinzugefügt.
-msg-org-team-repo-rm-success = { STYLE("bold") }{ $org }/{ $repo }{ STYLE("reset") } von Team { STYLE("bold", "bright_blue") }{ $team }{ STYLE("reset") } entfernt.
+msg-org-team-repo-add-success = { STYLE("bold") }{ $org }/{ $repo }{ STYLE("reset") } zu Team { STYLE("bold", "bright-blue") }{ $team }{ STYLE("reset") } hinzugefügt.
+msg-org-team-repo-rm-success = { STYLE("bold") }{ $org }/{ $repo }{ STYLE("reset") } von Team { STYLE("bold", "bright-blue") }{ $team }{ STYLE("reset") } entfernt.
 msg-org-team-member-list-no_results = Keine Ergebnisse.
 msg-org-team-member-list-page_number = Seite { $page } von { $total }
-msg-org-team-member-add-success = { STYLE("bold") }{ $user }{ STYLE("reset") } zu Team { STYLE("bold", "bright_blue") }{ $team }{ STYLE("reset") } hinzugefügt.
-msg-org-team-member-rm-success = { STYLE("bold", "bright-cyan") }{ $user }{ STYLE("reset") } von Team { STYLE("bold", "bright_blue") }{ $team }{ STYLE("reset") } entfernt.
+msg-org-team-member-add-success = { STYLE("bold") }{ $user }{ STYLE("reset") } zu Team { STYLE("bold", "bright-blue") }{ $team }{ STYLE("reset") } hinzugefügt.
+msg-org-team-member-rm-success = { STYLE("bold", "bright-cyan") }{ $user }{ STYLE("reset") } von Team { STYLE("bold", "bright-blue") }{ $team }{ STYLE("reset") } entfernt.
 msg-issue-create-no_templates = { $owner }/{ $repo } hat keine Issuevorlagen.
 msg-issue-create-templates_required =
     { $owner }/{ $repo } setzt die Nutzung einer Issuevorlage vorraus.
@@ -234,7 +234,7 @@ msg-pr-status-header =
     { $state ->
         [draft] { STYLE("light-grey") }Draft{ STYLE("reset") } { -dash } Entwurf PR kann nicht zusammengeführt werden
         [open]
-            { STYLE("bright_green") }Open{ STYLE("reset") } { -dash } { $mergeable ->
+            { STYLE("bright-green") }Open{ STYLE("reset") } { -dash } { $mergeable ->
                *[yes] Kann zusammengeführt werden
                 [no] { STYLE("bright-red") }Hat Konflikte mit dem Ziel-Branch{ STYLE("reset") }
             }
@@ -243,11 +243,11 @@ msg-pr-status-header =
     }
 msg-pr-status-entry =
     { $state ->
-        [success] { STYLE("bright_green") }Erfolg{ STYLE("reset") }
+        [success] { STYLE("bright-green") }Erfolg{ STYLE("reset") }
         [pending] { STYLE("yellow") }Ausstehened{ STYLE("reset") }
-        [warning] { STYLE("bright_yellow") }Warnung{ STYLE("reset") }
-        [failure] { STYLE("bright_red") }Fehlgeschlagen{ STYLE("reset") }
-        [error] { STYLE("bright_red") }Fehler{ STYLE("reset") }
+        [warning] { STYLE("bright-yellow") }Warnung{ STYLE("reset") }
+        [failure] { STYLE("bright-red") }Fehlgeschlagen{ STYLE("reset") }
+        [error] { STYLE("bright-red") }Fehler{ STYLE("reset") }
        *[other] Unbekannt
     } { -dash } { $context }
 msg-pr-review-list-none = Kein Sichtungen.
@@ -480,19 +480,19 @@ msg-activity-pushed_commit = { STYLE("bold") }{ $actor }{ STYLE("reset") } hat n
 msg-activity-created_issue = { STYLE("bold") }{ $actor }{ STYLE("reset") } hat Issue { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") } erstellt
 msg-activity-created_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } hat Pull-Request { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") } erstellt
 msg-activity-transferred_repo = { STYLE("bold") }{ $actor }{ STYLE("reset") } hat Repo { STYLE("bold", "yellow") }\"{ $old_name }\"{ STYLE("reset") } nach { STYLE("bold", "yellow") }{ $new_name }{ STYLE("reset") } transferriert
-msg-activity-pushed_tag = { STYLE("bold") }{ $actor }{ STYLE("reset") } hat Tag { STYLE("bold", "bright_cyan") }{ $tag_name }{ STYLE("reset") } nach { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") } geschoben
+msg-activity-pushed_tag = { STYLE("bold") }{ $actor }{ STYLE("reset") } hat Tag { STYLE("bold", "bright-cyan") }{ $tag_name }{ STYLE("reset") } nach { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") } geschoben
 msg-activity-commented_issue = { STYLE("bold") }{ $actor }{ STYLE("reset") } hat zu Issue { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") } kommentiert
 msg-activity-merged_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } hat Pull-Request { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") } zusammengeführt
 msg-activity-closed_issue = { STYLE("bold") }{ $actor }{ STYLE("reset") } hat Issue { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") } geschlossen
 msg-activity-reopened_issue = { STYLE("bold") }{ $actor }{ STYLE("reset") } hat Issue { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") } wieder geöffnet
 msg-activity-closed_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } hat Pull-Request { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") } geschlossen
 msg-activity-reopened_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } hat Pull-Request { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") } wieder geöffnet
-msg-activity-deleted_tag = { STYLE("bold") }{ $actor }{ STYLE("reset") } hat Tag { STYLE("bold", "bright_cyan") }{ $tag_name }{ STYLE("reset") } von { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") } gelöscht
-msg-activity-deleted_branch = { STYLE("bold") }{ $actor }{ STYLE("reset") } hat Branch { STYLE("bold", "bright_cyan") }{ $branch }{ STYLE("reset") } von { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") } gelöscht
+msg-activity-deleted_tag = { STYLE("bold") }{ $actor }{ STYLE("reset") } hat Tag { STYLE("bold", "bright-cyan") }{ $tag_name }{ STYLE("reset") } von { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") } gelöscht
+msg-activity-deleted_branch = { STYLE("bold") }{ $actor }{ STYLE("reset") } hat Branch { STYLE("bold", "bright-cyan") }{ $branch }{ STYLE("reset") } von { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") } gelöscht
 msg-activity-approved_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } hat { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") } genehmigt
 msg-activity-rejected_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } hat Änderungen für { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") } angefragt
 msg-activity-commented_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } hat zu Pull-Request { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") } kommentiert
-msg-activity-created_release = { STYLE("bold") }{ $actor }{ STYLE("reset") } hat Release { STYLE("bold", "bright_cyan") }{ $release_name }{ STYLE("reset") } auf { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") } erstellt
+msg-activity-created_release = { STYLE("bold") }{ $actor }{ STYLE("reset") } hat Release { STYLE("bold", "bright-cyan") }{ $release_name }{ STYLE("reset") } auf { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") } erstellt
 msg-user-edit-name-removal_hint = Nutzen Sie --unset, um Ihren Namen von Ihrem Profil zu löschen
 msg-user-edit-pronouns-removal_hint = Nutzen Sie --unset, um Ihre Pronomen von Ihrem Profil zu löschen
 msg-user-edit-location-removal_hint = Nutzen Sie --unset, um Ihren Ort von Ihrem Profil zu löschen
