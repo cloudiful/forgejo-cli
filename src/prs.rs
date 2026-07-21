@@ -123,7 +123,7 @@ pub enum PrSubcommand {
         #[clap(long, short = 'I')]
         identity_file: Option<PathBuf>,
     },
-    #[clap(about = h!("cmd-pr-checkout"))]
+    #[clap(about = h!("cmd-pr-comment"))]
     Comment {
         #[clap(help = h!("arg-pr-comment-pr"))]
         pr: Option<IssueId>,
