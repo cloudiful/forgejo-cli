@@ -4,14 +4,20 @@ when:
 steps:
   check:
     image: rust
+    environment:
+      CARGO_HOME: './cargo-home'
     commands:
       - cargo check
   check-fmt:
     image: rust
+    environment:
+      CARGO_HOME: './cargo-home'
     commands:
       - rustup component add rustfmt
       - cargo fmt --check
   check-clap:
     image: rust
+    environment:
+      CARGO_HOME: './cargo-home'
     commands:
       - cargo run -- completion bash
