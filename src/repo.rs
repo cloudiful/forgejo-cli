@@ -527,7 +527,7 @@ pub enum RepoCommand {
         website: Option<String>,
 
         #[clap(help = h!("arg-repo-edit-avatar"))]
-        #[clap(short, long)]
+        #[clap(short = 'A', long)]
         avatar: Option<PathBuf>,
 
         #[clap(help = h!("arg-repo-edit-unset_avatar"))]
