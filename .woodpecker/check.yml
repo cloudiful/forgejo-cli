@@ -11,3 +11,7 @@ steps:
     commands:
       - rustup component add rustfmt
       - cargo fmt --check
+  check-clap:
+    image: rust
+    commands:
+      - cargo run -- completion bash
