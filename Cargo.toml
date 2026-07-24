@@ -74,6 +74,9 @@ unic-langid = { version = "0.9.6", features = ["unic-langid-macros"] }
 url = "2.5.4"
 uuid = { version = "1.16.0", features = ["v4"] }
 
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
 [build-dependencies]
 fluent-syntax = "0.12.0"
 
