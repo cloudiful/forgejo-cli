@@ -99,6 +99,34 @@ impl Command {
 
 #[tokio::main]
 async fn main() -> eyre::Result<()> {
+    #[cfg(unix)]
+    unsafe {
+        // This removes the SIGPIPE handler that the standard pre-main code installs.  We do this to
+        // correctly terminate on closed stdout rather than panicking and printing unwanted output in
+        // case the user uses `head` or a similar utility on our output.
+
+        // SAFETY: All fields are valid as zeroed values. And the sigaction(2) man page contains an
+        // example where this is also done.
+        let mut act: libc::sigaction = std::mem::zeroed();
+
+        // Here, we set the `sa_sigaction` field. According to sigaction(2), we would have to set
+        // the `sa_handler` instead, since we're not passing a function pointer. While POSIX does
+        // not specify this, `sa_sigaction` and `sa_handler` happen to point to the same underlying
+        // data on all platforms supported by the `libc` crate, which accordingly doesn't implement
+        // this union and rather keeps only one of the field names, `sa_sigaction`, removing the
+        // other. However, since the `libc` crate currently supports only platforms that use this
+        // memory layout, we can be sure that this is always correct ABI-wise. We would, however,
+        // have to revisit this code should this ever change in the libc crate (which has to happen
+        // as part of a major update as per the SemVer spec).
+        // See: https://github.com/rust-lang/libc/issues/3111
+        act.sa_sigaction = libc::SIG_DFL;
+
+        // SAFETY: The null pointer represents an optional output argument for the old action. If
+        // it is the null pointer as it is here, that means we don't care about it. It is only ever
+        // dereferenced when not null.
+        libc::sigaction(libc::SIGPIPE, &act, std::ptr::null_mut());
+    }
+
     let args = App::parse();
 
     if let Some(cwd) = &args.cwd {
