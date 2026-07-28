@@ -7,7 +7,7 @@ use std::{
 use tokio::io::AsyncWriteExt;
 use url::Url;
 
-use crate::{ftl_eyre, ftl_println};
+use crate::{ftl_eprintln, ftl_eyre};
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, Default)]
 pub struct KeyInfo {
@@ -29,17 +29,17 @@ impl KeyInfo {
         let json = tokio::fs::read(fallback).await;
         let this = match json {
             Ok(x) => {
-                ftl_println!("msg-old-key-file-read");
+                ftl_eprintln!("msg-old-key-file-read");
                 serde_json::from_slice::<Self>(&x)?
             }
             Err(e) if e.kind() == ErrorKind::NotFound => {
-                ftl_println!("msg-key-file-not-found");
+                ftl_eprintln!("msg-key-file-not-found");
                 return Ok(Self::default());
             }
             Err(e) => return Err(e.into()),
         };
         if this.save().await.is_err() {
-            ftl_println!(
+            ftl_eprintln!(
                 "msg-save-migrated-key-file-fail",
                 path = new_path.to_string_lossy()
             );
