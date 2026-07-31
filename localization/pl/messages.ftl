@@ -124,17 +124,17 @@ msg-activity-pushed_commit = { STYLE("bold") }{ $actor }{ STYLE("reset") } wypch
 msg-activity-created_issue = { STYLE("bold") }{ $actor }{ STYLE("reset") } otworzył zgłoszenie { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
 msg-activity-created_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } utworzył pull request { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
 msg-activity-transferred_repo = { STYLE("bold") }{ $actor }{ STYLE("reset") } przekazał repozytorium { STYLE("bold", "yellow") }\"{ $old_name }\"{ STYLE("reset") } do { STYLE("bold", "yellow") }{ $new_name }{ STYLE("reset") }
-msg-activity-pushed_tag = { STYLE("bold") }{ $actor }{ STYLE("reset") } wypchnął tag { STYLE("bold", "bright_cyan") }{ $tag_name }{ STYLE("reset") } do { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") }
+msg-activity-pushed_tag = { STYLE("bold") }{ $actor }{ STYLE("reset") } wypchnął tag { STYLE("bold", "bright-cyan") }{ $tag_name }{ STYLE("reset") } do { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") }
 msg-activity-closed_issue = { STYLE("bold") }{ $actor }{ STYLE("reset") } zamknął zgłoszenie { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
 msg-activity-reopened_issue = { STYLE("bold") }{ $actor }{ STYLE("reset") } ponownie otworzył zgłoszenie { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
 msg-activity-closed_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } zamknął pr { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
 msg-activity-reopened_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } ponownie otworzył pr { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
-msg-activity-deleted_tag = { STYLE("bold") }{ $actor }{ STYLE("reset") } usunął tag { STYLE("bold", "bright_cyan") }{ $tag_name }{ STYLE("reset") } z { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") }
-msg-activity-deleted_branch = { STYLE("bold") }{ $actor }{ STYLE("reset") } usunął gałąź { STYLE("bold", "bright_cyan") }{ $branch }{ STYLE("reset") } z { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") }
+msg-activity-deleted_tag = { STYLE("bold") }{ $actor }{ STYLE("reset") } usunął tag { STYLE("bold", "bright-cyan") }{ $tag_name }{ STYLE("reset") } z { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") }
+msg-activity-deleted_branch = { STYLE("bold") }{ $actor }{ STYLE("reset") } usunął gałąź { STYLE("bold", "bright-cyan") }{ $branch }{ STYLE("reset") } z { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") }
 msg-activity-approved_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } zatwierdził { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
 msg-activity-rejected_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } zasugerował zmiany do { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
 msg-activity-commented_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } skomentował pull request { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
-msg-activity-created_release = { STYLE("bold") }{ $actor }{ STYLE("reset") } utworzył wydanie { STYLE("bold", "bright_cyan") }{ $release_name }{ STYLE("reset") } w { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") }
+msg-activity-created_release = { STYLE("bold") }{ $actor }{ STYLE("reset") } utworzył wydanie { STYLE("bold", "bright-cyan") }{ $release_name }{ STYLE("reset") } w { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") }
 msg-user-key-list-count = łącznie kluczy: { $keys }
 msg-user-key-list-header = { STYLE("bold") }Klucz { STYLE("bright-magenta") }{ $id }{ STYLE("reset") }
 msg-user-key-list-title = { STYLE("bold") }Tytuł:{ STYLE("reset") }       { STYLE("bright-cyan") }{ $title }{ STYLE("reset") }
@@ -148,10 +148,10 @@ msg-org-members-entry =
     }
 msg-org-label-add-success = Utworzono nową etykietę { $label }
 msg-org-label-remove-success = Usunięto etykietę { $label }
-msg-org-team-repo-add-success = Dodano { STYLE("bold") }{ $org }/{ $repo }{ STYLE("reset") } do zespołu { STYLE("bold", "bright_blue") }{ $team }{ STYLE("reset") }
-msg-org-team-repo-rm-success = Usunięto { STYLE("bold") }{ $org }/{ $repo }{ STYLE("reset") } z zespołu { STYLE("bold", "bright_blue") }{ $team }{ STYLE("reset") }
-msg-org-team-member-add-success = Dodano użytkownika { STYLE("bold", "bright-cyan") }{ $user }{ STYLE("reset") } do zespołu { STYLE("bold", "bright_blue") }{ $team }{ STYLE("reset") }
-msg-org-team-member-rm-success = Usunięto użytkownika { STYLE("bold", "bright-cyan") }{ $user }{ STYLE("reset") } z zespołu { STYLE("bold", "bright_blue") }{ $team }{ STYLE("reset") }
+msg-org-team-repo-add-success = Dodano { STYLE("bold") }{ $org }/{ $repo }{ STYLE("reset") } do zespołu { STYLE("bold", "bright-blue") }{ $team }{ STYLE("reset") }
+msg-org-team-repo-rm-success = Usunięto { STYLE("bold") }{ $org }/{ $repo }{ STYLE("reset") } z zespołu { STYLE("bold", "bright-blue") }{ $team }{ STYLE("reset") }
+msg-org-team-member-add-success = Dodano użytkownika { STYLE("bold", "bright-cyan") }{ $user }{ STYLE("reset") } do zespołu { STYLE("bold", "bright-blue") }{ $team }{ STYLE("reset") }
+msg-org-team-member-rm-success = Usunięto użytkownika { STYLE("bold", "bright-cyan") }{ $user }{ STYLE("reset") } z zespołu { STYLE("bold", "bright-blue") }{ $team }{ STYLE("reset") }
 msg-org-view-visibility =
     { $visibility ->
         [public] Publiczna

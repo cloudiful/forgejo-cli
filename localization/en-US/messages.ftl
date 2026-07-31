@@ -342,7 +342,7 @@ help-arg-org-team-repo-add-org = The name of the organization the team is in
 help-arg-org-team-repo-add-team = The name of the team to add a repo to
 help-arg-org-team-repo-add-repo = The name of the repo to add to the team
 msg-org-team-repo-add-success =
-    Added {STYLE("bold")}{$org}/{$repo}{STYLE("reset")} to team {STYLE("bold", "bright_blue")}{$team}{STYLE("reset")}
+    Added {STYLE("bold")}{$org}/{$repo}{STYLE("reset")} to team {STYLE("bold", "bright-blue")}{$team}{STYLE("reset")}
 
 help-cmd-org-team-repo-rm = Remove access to a repo from a team
 help-cmd-org-team-repo-rm-long =
@@ -353,7 +353,7 @@ help-arg-org-team-repo-rm-org = The name of the organization the team is in
 help-arg-org-team-repo-rm-team = The name of the team to remove the repo from
 help-arg-org-team-repo-rm-repo = The name of the repo to remove from the team
 msg-org-team-repo-rm-success =
-    Removed {STYLE("bold")}{$org}/{$repo}{STYLE("reset")} from team {STYLE("bold", "bright_blue")}{$team}{STYLE("reset")}
+    Removed {STYLE("bold")}{$org}/{$repo}{STYLE("reset")} from team {STYLE("bold", "bright-blue")}{$team}{STYLE("reset")}
 
 help-cmd-org-team-member-list = List all the members of a team
 help-arg-org-team-member-list-org = The name of the organization the team is in
@@ -367,14 +367,14 @@ help-arg-org-team-member-add-org = The name of the organization the team is in
 help-arg-org-team-member-add-team = The name of the team to add a user to
 help-arg-org-team-member-add-user = The name of the user to add to the team
 msg-org-team-member-add-success =
-    Added {STYLE("bold", "bright-cyan")}{$user}{STYLE("reset")} to team {STYLE("bold", "bright_blue")}{$team}{STYLE("reset")}
+    Added {STYLE("bold", "bright-cyan")}{$user}{STYLE("reset")} to team {STYLE("bold", "bright-blue")}{$team}{STYLE("reset")}
 
 help-cmd-org-team-member-rm = Remove someone from a team
 help-arg-org-team-member-rm-org = The name of the organization the team is in
 help-arg-org-team-member-rm-team = The name of the team to remove the user from
 help-arg-org-team-member-rm-user = The name of the user to remove from the team
 msg-org-team-member-rm-success =
-    Removed {STYLE("bold", "bright-cyan")}{$user}{STYLE("reset")} from team {STYLE("bold", "bright_blue")}{$team}{STYLE("reset")}
+    Removed {STYLE("bold", "bright-cyan")}{$user}{STYLE("reset")} from team {STYLE("bold", "bright-blue")}{$team}{STYLE("reset")}
 
 help-cmd-issue-create = Create a new issue on a repo
 help-arg-issue-create-title = Title of the issue
@@ -579,7 +579,7 @@ help-arg-pr-status-wait = Wait for all checks to finish before exiting
 msg-pr-status-merged = {STYLE("bright-magenta")}Merged{STYLE("reset")} by {$merged_by} on {DATETIME($created_at, dateStyle: "long", timeStyle: "long")}
 msg-pr-status-header = {$state ->
         [draft] {STYLE("light-grey")}Draft{STYLE("reset")} {-dash} Can't merge draft PR
-        [open] {STYLE("bright_green")}Open{STYLE("reset")} {-dash} {$mergeable ->
+        [open] {STYLE("bright-green")}Open{STYLE("reset")} {-dash} {$mergeable ->
            *[yes] Can be merged
             [no] {STYLE("bright-red")}Merge conflicts{STYLE("reset")}
         }
@@ -587,12 +587,12 @@ msg-pr-status-header = {$state ->
        *[other] Unknown
     }
 msg-pr-status-entry = {$state ->
-        [success] {STYLE("bright_green")}Success{STYLE("reset")}
+        [success] {STYLE("bright-green")}Success{STYLE("reset")}
         [pending] {STYLE("yellow")}Pending{STYLE("reset")}
-        [warning] {STYLE("bright_yellow")}Warning{STYLE("reset")}
-        [failure] {STYLE("bright_red")}Failure{STYLE("reset")}
+        [warning] {STYLE("bright-yellow")}Warning{STYLE("reset")}
+        [failure] {STYLE("bright-red")}Failure{STYLE("reset")}
         [skipped] {STYLE("grey")}Skipped{STYLE("RESET")}
-        [error] {STYLE("bright_red")}Error{STYLE("reset")}
+        [error] {STYLE("bright-red")}Error{STYLE("reset")}
        *[other] Unknown
     } {-dash} {$context}
 
@@ -1140,19 +1140,19 @@ msg-activity-pushed_commit = {STYLE("bold")}{$actor}{STYLE("reset")} pushed to {
 msg-activity-created_issue = {STYLE("bold")}{$actor}{STYLE("reset")} opened issue {STYLE("bold", "yellow")}{$repo_name}#{$number}{STYLE("reset")}
 msg-activity-created_pr = {STYLE("bold")}{$actor}{STYLE("reset")} created pull request {STYLE("bold", "yellow")}{$repo_name}#{$number}{STYLE("reset")}
 msg-activity-transferred_repo = {STYLE("bold")}{$actor}{STYLE("reset")} transferred repository {STYLE("bold", "yellow")}\"{$old_name}\"{STYLE("reset")} to {STYLE("bold", "yellow")}{$new_name}{STYLE("reset")}
-msg-activity-pushed_tag = {STYLE("bold")}{$actor}{STYLE("reset")} pushed tag {STYLE("bold", "bright_cyan")}{$tag_name}{STYLE("reset")} to {STYLE("bold", "yellow")}{$repo_name}{STYLE("reset")}
+msg-activity-pushed_tag = {STYLE("bold")}{$actor}{STYLE("reset")} pushed tag {STYLE("bold", "bright-cyan")}{$tag_name}{STYLE("reset")} to {STYLE("bold", "yellow")}{$repo_name}{STYLE("reset")}
 msg-activity-commented_issue = {STYLE("bold")}{$actor}{STYLE("reset")} commented on issue {STYLE("bold", "yellow")}{$repo_name}#{$number}{STYLE("reset")}
 msg-activity-merged_pr = {STYLE("bold")}{$actor}{STYLE("reset")} merged pull request {STYLE("bold", "yellow")}{$repo_name}#{$number}{STYLE("reset")}
 msg-activity-closed_issue = {STYLE("bold")}{$actor}{STYLE("reset")} closed issue {STYLE("bold", "yellow")}{$repo_name}#{$number}{STYLE("reset")}
 msg-activity-reopened_issue = {STYLE("bold")}{$actor}{STYLE("reset")} reopened issue {STYLE("bold", "yellow")}{$repo_name}#{$number}{STYLE("reset")}
 msg-activity-closed_pr = {STYLE("bold")}{$actor}{STYLE("reset")} closed pr {STYLE("bold", "yellow")}{$repo_name}#{$number}{STYLE("reset")}
 msg-activity-reopened_pr = {STYLE("bold")}{$actor}{STYLE("reset")} reopened pr {STYLE("bold", "yellow")}{$repo_name}#{$number}{STYLE("reset")}
-msg-activity-deleted_tag = {STYLE("bold")}{$actor}{STYLE("reset")} deleted tag {STYLE("bold", "bright_cyan")}{$tag_name}{STYLE("reset")} from {STYLE("bold", "yellow")}{$repo_name}{STYLE("reset")}
-msg-activity-deleted_branch = {STYLE("bold")}{$actor}{STYLE("reset")} deleted branch {STYLE("bold", "bright_cyan")}{$branch}{STYLE("reset")} from {STYLE("bold", "yellow")}{$repo_name}{STYLE("reset")}
+msg-activity-deleted_tag = {STYLE("bold")}{$actor}{STYLE("reset")} deleted tag {STYLE("bold", "bright-cyan")}{$tag_name}{STYLE("reset")} from {STYLE("bold", "yellow")}{$repo_name}{STYLE("reset")}
+msg-activity-deleted_branch = {STYLE("bold")}{$actor}{STYLE("reset")} deleted branch {STYLE("bold", "bright-cyan")}{$branch}{STYLE("reset")} from {STYLE("bold", "yellow")}{$repo_name}{STYLE("reset")}
 msg-activity-approved_pr = {STYLE("bold")}{$actor}{STYLE("reset")} approved {STYLE("bold", "yellow")}{$repo_name}#{$number}{STYLE("reset")}
 msg-activity-rejected_pr = {STYLE("bold")}{$actor}{STYLE("reset")} suggested changes for {STYLE("bold", "yellow")}{$repo_name}#{$number}{STYLE("reset")}
 msg-activity-commented_pr = {STYLE("bold")}{$actor}{STYLE("reset")} commented on pull request {STYLE("bold", "yellow")}{$repo_name}#{$number}{STYLE("reset")}
-msg-activity-created_release = {STYLE("bold")}{$actor}{STYLE("reset")} created release {STYLE("bold", "bright_cyan")}{$release_name}{STYLE("reset")} on {STYLE("bold", "yellow")}{$repo_name}{STYLE("reset")}
+msg-activity-created_release = {STYLE("bold")}{$actor}{STYLE("reset")} created release {STYLE("bold", "bright-cyan")}{$release_name}{STYLE("reset")} on {STYLE("bold", "yellow")}{$repo_name}{STYLE("reset")}
 
 help-cmd-user-edit = Edit your user settings
 
