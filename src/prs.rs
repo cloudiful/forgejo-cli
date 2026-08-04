@@ -646,7 +646,7 @@ impl PrCommand {
                 }
             }
             Depend(_) | Block(_) => {
-                eyre::eyre!("can't figure what repo to access, try specifying with `--repo`")
+                ftl_eyre!("msg-pr-depend-no_repo_info")
             }
             View { id: pr, .. }
             | Status { id: pr, .. }

@@ -11,7 +11,7 @@ use forgejo_api::structs::{
 };
 
 use crate::repo::{RepoArg, RepoInfo, RepoName};
-use crate::{ftl_bail, ftl_ensure, ftl_eprintln, ftl_println, h, lh};
+use crate::{ftl_bail, ftl_ensure, ftl_eprintln, ftl_eyre, ftl_println, h, lh};
 
 pub mod template;
 
@@ -422,9 +422,7 @@ impl IssueCommand {
                 issue.number
             ),
             Depend(_) | Block(_) => {
-                eyre::eyre!(
-                    "can't figure out what repo to access, try specifying it via `{{owner}}/{{repo}}#{{number}}` on the issue or target arguments"
-                )
+                ftl_eyre!("msg-issue-depend-no_repo_info")
             }
         }
     }
@@ -1227,7 +1225,7 @@ pub async fn add_dependencies(
     targets: Vec<IssueId>,
 ) -> eyre::Result<()> {
     if targets.is_empty() {
-        eyre::bail!("at least one target issue is required");
+        ftl_bail!("msg-issue-dep-target-required");
     }
     let (host_owner, host_repo_name) = host_repo(&issue, repo);
     let count = targets.len();
@@ -1247,7 +1245,7 @@ pub async fn remove_dependencies(
     targets: Vec<IssueId>,
 ) -> eyre::Result<()> {
     if targets.is_empty() {
-        eyre::bail!("at least one target issue is required");
+        ftl_bail!("msg-issue-dep-target-required");
     }
     let (host_owner, host_repo_name) = host_repo(&issue, repo);
     let count = targets.len();
@@ -1287,7 +1285,7 @@ pub async fn add_blocks(
     targets: Vec<IssueId>,
 ) -> eyre::Result<()> {
     if targets.is_empty() {
-        eyre::bail!("at least one target issue is required");
+        ftl_bail!("msg-issue-dep-target-required");
     }
     let (host_owner, host_repo_name) = host_repo(&issue, repo);
     let count = targets.len();
@@ -1307,7 +1305,7 @@ pub async fn remove_blocks(
     targets: Vec<IssueId>,
 ) -> eyre::Result<()> {
     if targets.is_empty() {
-        eyre::bail!("at least one target issue is required");
+        ftl_bail!("msg-issue-dep-target-required");
     }
     let (host_owner, host_repo_name) = host_repo(&issue, repo);
     let count = targets.len();
