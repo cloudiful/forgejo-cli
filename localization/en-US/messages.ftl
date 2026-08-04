@@ -528,6 +528,65 @@ msg-issue-close-success = Closed issue #{$number}: "{$title}"
 
 help-cmd-issue-browse = Open an issue in your browser
 
+help-cmd-issue-depend = Manage issues this issue depends on
+help-cmd-issue-block = Manage issues this issue blocks
+
+# Shared between `issue` and `pr` depend/block subcommands
+help-cmd-depend-add = Add one or more dependencies
+help-cmd-depend-remove = Remove one or more dependencies
+help-cmd-depend-list = List dependencies
+
+help-cmd-block-add = Add one or more blocking relationships
+help-cmd-block-remove = Remove one or more blocking relationships
+help-cmd-block-list = List blockers
+
+help-arg-depend-add-target = One or more issues to add as dependencies
+help-arg-depend-remove-target = One or more issues to remove from dependencies
+help-arg-block-remove-target = One or more issues to unblock
+
+help-arg-issue-depend-add-issue = The issue to operate on
+help-arg-issue-depend-remove-issue = The issue to operate on
+help-arg-issue-depend-list-issue = The issue whose dependencies to list
+
+help-arg-issue-block-add-issue = The issue to operate on
+help-arg-issue-block-add-target = One or more issues this issue should block
+help-arg-issue-block-remove-issue = The issue to operate on
+help-arg-issue-block-list-issue = The issue whose blockers to list
+
+msg-issue-depend-add-success =
+    { $count ->
+        [one] Added 1 dependency to #{$issue}
+       *[other] Added {$count} dependencies to #{$issue}
+    }
+msg-issue-depend-remove-success =
+    { $count ->
+        [one] Removed 1 dependency from #{$issue}
+       *[other] Removed {$count} dependencies from #{$issue}
+    }
+msg-issue-block-add-success =
+    { $count ->
+        [one] Added 1 blocking relationship from #{$issue}
+       *[other] Added {$count} blocking relationships from #{$issue}
+    }
+msg-issue-block-remove-success =
+    { $count ->
+        [one] Removed 1 blocking relationship from #{$issue}
+       *[other] Removed {$count} blocking relationships from #{$issue}
+    }
+msg-issue-dep-target-required = at least one target issue is required
+msg-issue-depend-no_repo_info = can't figure what repo to access, try specifying it via `{{owner}}/{{repo}}#{{number}}` on the issue or target arguments
+msg-pr-depend-no_repo_info = can't figure what repo to access, try specifying with `--repo`
+msg-issue-depend-list-empty = No dependencies.
+msg-issue-block-list-empty = No blockers.
+msg-issue-depend-list-header = {STYLE("bold")}Dependencies of{STYLE("reset")} {$owner}/{$repo} {-dash} #{$number}
+msg-issue-block-list-header = {STYLE("bold")}Issues blocked by{STYLE("reset")} {$owner}/{$repo} {-dash} #{$number}
+msg-issue-dep-list-entry = {"  "}#{$number} {STYLE("bold")}{$title}{STYLE("reset")} ({$state ->
+        [closed] closed
+        [merged] merged
+        [draft] draft
+       *[open] open
+    })
+
 msg-pr-couldnt_guess = could not guess pull request number, please specify
 msg-pr-not_found = could not find PR
 
@@ -725,6 +784,18 @@ help-arg-pr-assign-users = The usernames of the users to assign to this PR
 
 help-cmd-pr-unassign = Unassign users from a pull request
 help-arg-pr-unassign-users = The usernames of the users to unassign from this PR
+
+help-cmd-pr-depend = Manage issues this pull request depends on
+help-cmd-pr-block = Manage issues this pull request blocks
+
+help-arg-pr-depend-add-pr = The pull request to operate on
+help-arg-pr-depend-remove-pr = The pull request to operate on
+help-arg-pr-depend-list-pr = The pull request whose dependencies to list
+
+help-arg-pr-block-add-pr = The pull request to operate on
+help-arg-pr-block-add-target = One or more issues this pull request should block
+help-arg-pr-block-remove-pr = The pull request to operate on
+help-arg-pr-block-list-pr = The pull request whose blockers to list
 
 help-cmd-pr-edit = Edit the contents of a pull request
 help-arg-pr-edit-pr = The pull request to edit

@@ -149,6 +149,10 @@ pub enum PrSubcommand {
         #[clap(help = h!("arg-pr-unassign-users"))]
         users: Vec<String>,
     },
+    #[clap(about = h!("cmd-pr-depend"))]
+    Depend(PrDependCommand),
+    #[clap(about = h!("cmd-pr-block"))]
+    Block(PrBlockCommand),
     #[clap(about = h!("cmd-pr-edit"))]
     Edit {
         #[clap(help = h!("arg-pr-edit-pr"))]
@@ -314,6 +318,70 @@ pub enum ViewCommand {
     },
 }
 
+#[derive(Args, Clone, Debug)]
+pub struct PrDependCommand {
+    #[clap(subcommand)]
+    pub command: PrDependSubcommand,
+}
+
+#[derive(Subcommand, Clone, Debug)]
+pub enum PrDependSubcommand {
+    #[clap(about = h!("cmd-depend-add"))]
+    Add {
+        #[clap(help = h!("arg-pr-depend-add-pr"))]
+        #[clap(long, short)]
+        pr: Option<IssueId>,
+        #[clap(help = h!("arg-depend-add-target"))]
+        target: Vec<IssueId>,
+    },
+    #[clap(about = h!("cmd-depend-remove"))]
+    Remove {
+        #[clap(help = h!("arg-pr-depend-remove-pr"))]
+        #[clap(long, short)]
+        pr: Option<IssueId>,
+        #[clap(help = h!("arg-depend-remove-target"))]
+        target: Vec<IssueId>,
+    },
+    #[clap(about = h!("cmd-depend-list"))]
+    List {
+        #[clap(help = h!("arg-pr-depend-list-pr"))]
+        #[clap(long, short)]
+        pr: Option<IssueId>,
+    },
+}
+
+#[derive(Args, Clone, Debug)]
+pub struct PrBlockCommand {
+    #[clap(subcommand)]
+    pub command: PrBlockSubcommand,
+}
+
+#[derive(Subcommand, Clone, Debug)]
+pub enum PrBlockSubcommand {
+    #[clap(about = h!("cmd-block-add"))]
+    Add {
+        #[clap(help = h!("arg-pr-block-add-pr"))]
+        #[clap(long, short)]
+        pr: Option<IssueId>,
+        #[clap(help = h!("arg-pr-block-add-target"))]
+        target: Vec<IssueId>,
+    },
+    #[clap(about = h!("cmd-block-remove"))]
+    Remove {
+        #[clap(help = h!("arg-pr-block-remove-pr"))]
+        #[clap(long, short)]
+        pr: Option<IssueId>,
+        #[clap(help = h!("arg-block-remove-target"))]
+        target: Vec<IssueId>,
+    },
+    #[clap(about = h!("cmd-block-list"))]
+    List {
+        #[clap(help = h!("arg-pr-block-list-pr"))]
+        #[clap(long, short)]
+        pr: Option<IssueId>,
+    },
+}
+
 #[derive(Subcommand, Clone, Debug)]
 pub enum ReviewCommand {
     #[clap(about = h!("cmd-pr-review-list"))]
@@ -422,6 +490,64 @@ impl PrCommand {
                 let (repo, pr) = try_get_pr_number(repo, &api, pr.map(|pr| pr.number)).await?;
                 crate::issues::unassign_from_issue(&repo, &api, pr, users).await?
             }
+            Depend(cmd) => match cmd.command {
+                PrDependSubcommand::Add { pr, target } => {
+                    let (repo, number) =
+                        try_get_pr_number(repo, &api, pr.as_ref().map(|pr| pr.number)).await?;
+                    let pr = IssueId {
+                        repo: pr.and_then(|pr| pr.repo),
+                        number,
+                    };
+                    crate::issues::add_dependencies(&repo, &api, pr, target).await?
+                }
+                PrDependSubcommand::Remove { pr, target } => {
+                    let (repo, number) =
+                        try_get_pr_number(repo, &api, pr.as_ref().map(|pr| pr.number)).await?;
+                    let pr = IssueId {
+                        repo: pr.and_then(|pr| pr.repo),
+                        number,
+                    };
+                    crate::issues::remove_dependencies(&repo, &api, pr, target).await?
+                }
+                PrDependSubcommand::List { pr } => {
+                    let (repo, number) =
+                        try_get_pr_number(repo, &api, pr.as_ref().map(|pr| pr.number)).await?;
+                    let pr = IssueId {
+                        repo: pr.and_then(|pr| pr.repo),
+                        number,
+                    };
+                    crate::issues::view_dependencies(&repo, &api, pr).await?
+                }
+            },
+            Block(cmd) => match cmd.command {
+                PrBlockSubcommand::Add { pr, target } => {
+                    let (repo, number) =
+                        try_get_pr_number(repo, &api, pr.as_ref().map(|pr| pr.number)).await?;
+                    let pr = IssueId {
+                        repo: pr.and_then(|pr| pr.repo),
+                        number,
+                    };
+                    crate::issues::add_blocks(&repo, &api, pr, target).await?
+                }
+                PrBlockSubcommand::Remove { pr, target } => {
+                    let (repo, number) =
+                        try_get_pr_number(repo, &api, pr.as_ref().map(|pr| pr.number)).await?;
+                    let pr = IssueId {
+                        repo: pr.and_then(|pr| pr.repo),
+                        number,
+                    };
+                    crate::issues::remove_blocks(&repo, &api, pr, target).await?
+                }
+                PrBlockSubcommand::List { pr } => {
+                    let (repo, number) =
+                        try_get_pr_number(repo, &api, pr.as_ref().map(|pr| pr.number)).await?;
+                    let pr = IssueId {
+                        repo: pr.and_then(|pr| pr.repo),
+                        number,
+                    };
+                    crate::issues::view_blocks(&repo, &api, pr).await?
+                }
+            },
             Edit { pr, command } => {
                 let pr = pr.map(|pr| pr.number);
                 match command {
@@ -490,6 +616,7 @@ impl PrCommand {
         match &self.command {
             Search { repo, .. } | Create { repo, .. } => repo.as_ref(),
             Checkout { .. } => None,
+            Depend(_) | Block(_) => None,
             View { id: pr, .. }
             | Status { id: pr, .. }
             | Comment { pr, .. }
@@ -517,6 +644,9 @@ impl PrCommand {
                 } else {
                     eyre::eyre!("pr checkout only works if the current directory is a git repo")
                 }
+            }
+            Depend(_) | Block(_) => {
+                ftl_eyre!("msg-pr-depend-no_repo_info")
             }
             View { id: pr, .. }
             | Status { id: pr, .. }

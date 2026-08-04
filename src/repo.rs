@@ -279,6 +279,20 @@ pub struct RepoArg {
     name: String,
 }
 
+impl RepoArg {
+    pub fn owner(&self) -> &str {
+        &self.owner
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn host(&self) -> Option<&str> {
+        self.host.as_deref()
+    }
+}
+
 impl std::fmt::Display for RepoArg {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match &self.host {
