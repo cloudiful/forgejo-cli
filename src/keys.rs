@@ -33,7 +33,6 @@ impl KeyInfo {
                 serde_json::from_slice::<Self>(&x)?
             }
             Err(e) if e.kind() == ErrorKind::NotFound => {
-                ftl_eprintln!("msg-key-file-not-found");
                 return Ok(Self::default());
             }
             Err(e) => return Err(e.into()),
