@@ -20,7 +20,9 @@ use crate::{
     localization::AsFluent,
     repo::{RepoArg, RepoInfo, RepoName},
 };
-use crate::{ftl_bail, ftl_ensure, ftl_eprintln, ftl_eyre, ftl_format, ftl_println, h, lh};
+use crate::{
+    ftl_bail, ftl_ensure, ftl_eprintln, ftl_eyre, ftl_format, ftl_println, h, lh, milestones,
+};
 
 #[derive(Args, Clone, Debug)]
 pub struct PrCommand {
@@ -61,6 +63,10 @@ pub enum PrSubcommand {
         #[clap(help = h!("arg-pr-search-all"))]
         #[clap(long, conflicts_with = "page")]
         all: bool,
+
+        #[clap(help = h!("arg-pr-search-milestones"))]
+        #[clap(long, short)]
+        milestones: Option<String>,
     },
     #[clap(about = h!("cmd-pr-create"))]
     Create {
@@ -98,6 +104,10 @@ pub enum PrSubcommand {
         #[clap(help = h!("arg-pr-create-agit"))]
         #[clap(short, long, group = "source", group = "web-or-agit")]
         agit: bool,
+
+        #[clap(help = h!("arg-pr-create-milestone"))]
+        #[clap(long)]
+        milestone: Option<String>,
     },
     #[clap(about = h!("cmd-pr-view"))]
     View {
@@ -291,6 +301,16 @@ pub enum EditCommand {
         #[clap(long, short)]
         rm: Vec<String>,
     },
+    #[clap(about = h!("cmd-pr-edit-milestone"))]
+    #[group(required = true)]
+    Milestone {
+        #[clap(group = "arg")]
+        new_milestone: Option<String>,
+
+        #[clap(group = "arg")]
+        #[clap(long, short)]
+        unset: bool,
+    },
 }
 
 #[derive(Subcommand, Clone, Debug)]
@@ -432,6 +452,7 @@ impl PrCommand {
                 repo: _,
                 web,
                 agit,
+                milestone,
             } => {
                 create_pr(
                     repo,
@@ -444,6 +465,7 @@ impl PrCommand {
                     autofill,
                     web,
                     agit,
+                    milestone,
                     repo_info.remote_name(),
                 )
                 .await?
@@ -502,6 +524,7 @@ impl PrCommand {
                 repo: _,
                 page,
                 all,
+                milestones,
             } => {
                 view_prs(
                     repo,
@@ -512,6 +535,7 @@ impl PrCommand {
                     assignee,
                     state,
                     if all { None } else { Some(page) },
+                    milestones,
                 )
                 .await?
             }
@@ -599,6 +623,10 @@ impl PrCommand {
                     EditCommand::Labels { add, rm } => {
                         edit_pr_labels(repo, &api, pr, add, rm).await?
                     }
+                    EditCommand::Milestone {
+                        new_milestone,
+                        unset,
+                    } => edit_pr_milestone(repo, &api, pr, new_milestone, unset).await?,
                 }
             }
             Close { pr, with_msg } => {
@@ -1128,6 +1156,74 @@ async fn edit_pr_labels(
     Ok(())
 }
 
+async fn edit_pr_milestone(
+    repo: &RepoName,
+    api: &Forgejo,
+    pr: Option<i64>,
+    milestone: Option<String>,
+    unset: bool,
+) -> eyre::Result<()> {
+    match (milestone, unset) {
+        (Some(_), true) | (None, false) => unreachable!(),
+        (Some(milestone), false) => {
+            let pr = try_get_pr(repo, api, pr).await?;
+            let pr_number = pr.number.ok_or_eyre("pr does not have number")?;
+            let repo = repo_name_from_pr(&pr)?;
+
+            // TODO: it's possible to omit this ID resolution with more flexible API bindings, see
+            // comments in milestones.rs
+            let id = milestones::get_milestone_id(&repo, api, milestone).await?;
+
+            api.repo_edit_pull_request(
+                repo.owner(),
+                repo.name(),
+                pr_number,
+                forgejo_api::structs::EditPullRequestOption {
+                    allow_maintainer_edit: None,
+                    assignee: None,
+                    assignees: None,
+                    base: None,
+                    body: None,
+                    due_date: None,
+                    labels: None,
+                    milestone: Some(id),
+                    state: None,
+                    title: None,
+                    unset_due_date: None,
+                },
+            )
+            .await?;
+        }
+        (None, true) => {
+            let pr = try_get_pr(repo, api, pr).await?;
+            let pr_number = pr.number.ok_or_eyre("pr does not have number")?;
+            let repo = repo_name_from_pr(&pr)?;
+
+            api.repo_edit_pull_request(
+                repo.owner(),
+                repo.name(),
+                pr_number,
+                forgejo_api::structs::EditPullRequestOption {
+                    allow_maintainer_edit: None,
+                    assignee: None,
+                    assignees: None,
+                    base: None,
+                    body: None,
+                    due_date: None,
+                    labels: None,
+                    milestone: Some(0), // id 0 unsets
+                    state: None,
+                    title: None,
+                    unset_due_date: None,
+                },
+            )
+            .await?;
+        }
+    }
+
+    Ok(())
+}
+
 pub async fn get_template_file(
     repo: &RepoName,
     api: &Forgejo,
@@ -1178,6 +1274,7 @@ async fn create_pr(
     autofill: bool,
     web: bool,
     agit: bool,
+    milestone: Option<String>,
     remote_name: Option<&str>,
 ) -> eyre::Result<()> {
     let mut repo_data = api.repo_get(repo.owner(), repo.name()).await?;
@@ -1312,6 +1409,11 @@ async fn create_pr(
         let body = body.or(body_from_file);
         match head.zip(head_branch_name) {
             Some((head, head_branch_name)) => {
+                let milestone = match milestone {
+                    Some(m) => Some(milestones::get_milestone_id(repo, api, m).await?),
+                    None => None,
+                };
+
                 let base_opt = CreatePullRequestOption {
                     assignee: None,
                     assignees: None,
@@ -1320,7 +1422,7 @@ async fn create_pr(
                     due_date: None,
                     head: Some(head.clone()),
                     labels: None,
-                    milestone: None,
+                    milestone,
                     title: None,
                 };
                 let opt = if let Some((template_file, is_yaml)) =
@@ -1753,6 +1855,7 @@ async fn view_prs(
     assignee: Option<String>,
     state: Option<crate::issues::State>,
     page: Option<NonZeroU32>,
+    milestones: Option<String>,
 ) -> eyre::Result<()> {
     let labels = labels
         .map(|s| s.split(',').map(|s| s.to_string()).collect::<Vec<_>>())
@@ -1764,7 +1867,7 @@ async fn view_prs(
         assigned_by: assignee,
         state: state.map(|s| s.into()),
         r#type: Some(forgejo_api::structs::IssueListIssuesQueryType::Pulls),
-        milestones: None,
+        milestones,
         since: None,
         before: None,
         mentioned_by: None,

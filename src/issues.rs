@@ -12,7 +12,7 @@ use forgejo_api::structs::{
 use forgejo_api::{CountHeader, Forgejo};
 
 use crate::repo::{RepoArg, RepoInfo, RepoName};
-use crate::{ftl_bail, ftl_ensure, ftl_eprintln, ftl_eyre, ftl_println, h, lh};
+use crate::{ftl_bail, ftl_ensure, ftl_eprintln, ftl_eyre, ftl_println, h, lh, milestones};
 
 pub mod template;
 
@@ -48,6 +48,10 @@ pub enum IssueSubcommand {
         #[clap(help = h!("arg-issue-create-no_template"), long_help = lh!("arg-issue-create-no_template"))]
         #[clap(long, conflicts_with = "template")]
         no_template: bool,
+
+        #[clap(help = h!("arg-issue-create-milestone"))]
+        #[clap(long)]
+        milestone: Option<String>,
 
         #[clap(help = h!("arg-issue-create-repo"))]
         #[clap(long, short)]
@@ -125,6 +129,10 @@ pub enum IssueSubcommand {
         #[clap(help = h!("arg-issue-search-all"))]
         #[clap(long, conflicts_with = "page")]
         all: bool,
+
+        #[clap(help = h!("arg-issue-search-milestones"))]
+        #[clap(long, short)]
+        milestones: Option<String>,
     },
     #[clap(about = h!("cmd-issue-view"))]
     View {
@@ -235,6 +243,16 @@ pub enum EditCommand {
         #[clap(long, short)]
         rm: Vec<String>,
     },
+    #[clap(about = h!("cmd-issue-edit-milestone"))]
+    #[group(required = true)]
+    Milestone {
+        #[clap(group = "arg")]
+        new_milestone: Option<String>,
+
+        #[clap(group = "arg")]
+        #[clap(long, short)]
+        unset: bool,
+    },
 }
 
 #[derive(Subcommand, Clone, Debug)]
@@ -320,6 +338,7 @@ impl IssueCommand {
                 body,
                 body_file,
                 template,
+                milestone,
                 no_template,
                 web,
             } => {
@@ -330,6 +349,7 @@ impl IssueCommand {
                     body,
                     body_file,
                     template,
+                    milestone,
                     no_template,
                     web,
                 )
@@ -350,6 +370,7 @@ impl IssueCommand {
                 state,
                 page,
                 all,
+                milestones,
             } => {
                 view_issues(
                     repo,
@@ -360,6 +381,7 @@ impl IssueCommand {
                     assignee,
                     state,
                     if all { None } else { Some(page) },
+                    milestones,
                 )
                 .await?
             }
@@ -377,6 +399,10 @@ impl IssueCommand {
                 EditCommand::Labels { add, rm } => {
                     crate::edit_labels(repo, &api, issue.number, add, rm).await?;
                 }
+                EditCommand::Milestone {
+                    new_milestone,
+                    unset,
+                } => edit_milestone(repo, &api, issue.number, new_milestone, unset).await?,
             },
             Assign { issue, users } => assign_to_issue(repo, &api, issue.number, users).await?,
             Unassign { issue, users } => {
@@ -498,6 +524,7 @@ async fn create_issue(
     body: Option<String>,
     body_file: Option<PathBuf>,
     template: Option<String>,
+    milestone: Option<String>,
     no_template: bool,
     web: bool,
 ) -> eyre::Result<()> {
@@ -526,6 +553,12 @@ async fn create_issue(
                     owner = repo.owner(),
                     repo = repo.name(),
                 );
+
+                let milestone = match milestone {
+                    Some(m) => Some(milestones::get_milestone_id(repo, api, m).await?),
+                    None => None,
+                };
+
                 let (template_file, is_yaml) =
                     template::get_template_file(repo, api, &template_name).await?;
                 let (body, metadata) =
@@ -540,7 +573,7 @@ async fn create_issue(
                     closed: None,
                     due_date: None,
                     labels: maybe_label_names_to_ids(repo, api, metadata.labels).await?,
-                    milestone: None,
+                    milestone,
                     r#ref: metadata.r#ref,
                 }
             } else {
@@ -675,6 +708,7 @@ async fn view_issues(
     assignee: Option<String>,
     state: Option<State>,
     page: Option<NonZeroU32>,
+    milestones: Option<String>,
 ) -> eyre::Result<()> {
     const PAGE_SIZE: u32 = crate::prs::SEARCH_PAGE_SIZE;
     let labels = labels
@@ -687,7 +721,7 @@ async fn view_issues(
         assigned_by: assignee,
         state: state.map(|s| s.into()),
         r#type: Some(forgejo_api::structs::IssueListIssuesQueryType::Issues),
-        milestones: None,
+        milestones,
         since: None,
         before: None,
         mentioned_by: None,
@@ -1401,4 +1435,61 @@ pub async fn view_blocks(repo: &RepoName, api: &Forgejo, issue: IssueId) -> eyre
         list,
     )
     .await
+}
+
+pub async fn edit_milestone(
+    repo: &RepoName,
+    api: &forgejo_api::Forgejo,
+    num: i64,
+    milestone: Option<String>,
+    unset: bool,
+) -> eyre::Result<()> {
+    match (milestone, unset) {
+        (Some(_), true) | (None, false) => unreachable!(),
+        (Some(milestone), false) => {
+            // TODO: it's possible to omit this ID resolution with more flexible API bindings, see
+            // comments in milestones.rs
+            let id = milestones::get_milestone_id(repo, api, milestone).await?;
+
+            api.issue_edit_issue(
+                repo.owner(),
+                repo.name(),
+                num,
+                EditIssueOption {
+                    assignee: None,
+                    assignees: None,
+                    body: None,
+                    due_date: None,
+                    milestone: Some(id),
+                    r#ref: None,
+                    state: None,
+                    title: None,
+                    unset_due_date: None,
+                    updated_at: None,
+                },
+            )
+            .await?;
+        }
+        (None, true) => {
+            api.issue_edit_issue(
+                repo.owner(),
+                repo.name(),
+                num,
+                EditIssueOption {
+                    assignee: None,
+                    assignees: None,
+                    body: None,
+                    due_date: None,
+                    milestone: Some(0),
+                    r#ref: None,
+                    state: None,
+                    title: None,
+                    unset_due_date: None,
+                    updated_at: None,
+                },
+            )
+            .await?;
+        }
+    }
+    Ok(())
 }

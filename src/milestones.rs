@@ -328,7 +328,7 @@ async fn view_milestone(repo: &RepoName, api: &Forgejo, name: String) -> eyre::R
     Ok(())
 }
 
-async fn get_milestone_id(repo: &RepoName, api: &Forgejo, name: String) -> eyre::Result<i64> {
+pub async fn get_milestone_id(repo: &RepoName, api: &Forgejo, name: String) -> eyre::Result<i64> {
     if let Ok(id) = i64::from_str(&name) {
         return Ok(id);
     }

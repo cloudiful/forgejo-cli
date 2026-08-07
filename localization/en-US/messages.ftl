@@ -394,6 +394,7 @@ help-arg-issue-create-no_template-long =
     Don't use a template for this issue
 
     If the repo has disabled blank issues, this will fail.
+help-arg-issue-create-milestone = Add this issue to the given milestone
 help-arg-issue-create-repo = The repo to create this issue on
 help-arg-issue-create-web = Open the issue creation page in your web browser
 msg-issue-create-no_templates = {$owner}/{$repo} does not have any issue templates
@@ -450,6 +451,7 @@ msg-issue-search-page-total = { $total_pages ->
            *[other] {$issues} issues
        })
     }
+help-arg-issue-search-milestones = Comma-separated list of milestones to filter by
 msg-issue-search-entry = #{$number}: {$title} (by {$author})
 
 help-cmd-issue-templates = List the issue templates in a repo
@@ -480,6 +482,8 @@ help-cmd-issue-edit-comment = Edit a comment on an issue
 help-cmd-issue-edit-labels = Edit an issue's labels
 help-arg-issue-edit-labels-add = The labels to add
 help-arg-issue-edit-labels-rm = The labels to remove
+
+help-cmd-issue-edit-milestone = Edit an issue's milestone
 
 help-cmd-issue-comment = Add a comment on an issue
 help-arg-issue-comment-issue = The issue to comment on
@@ -715,6 +719,7 @@ help-arg-pr-create-autofill-long =
 help-arg-pr-create-repo = The repo to create this pull request on
 help-arg-pr-create-web = Open the PR creation page in your web browser
 help-arg-pr-create-agit = Open the PR using AGit workflow
+help-arg-pr-create-milestone = Add this PR to the given milestone
 msg-pr-create-cross_instance = cannot create pull request across instances; base is on {$base_instance}, while head is tracking {$head_instance}
 msg-pr-create-success = created pull request #{$number}: {$title}
 msg-pr-create-agit_success = created pull request: {$title}
@@ -833,6 +838,8 @@ help-cmd-pr-edit-labels = Edit the applied labels
 help-arg-pr-edit-labels-add = The labels to add
 help-arg-pr-edit-labels-rm = The labels to remove
 
+help-cmd-pr-edit-milestone = Edit a PR's milestone
+
 help-cmd-pr-close = Close a pull request, without merging
 help-arg-pr-close-pr = The pull request to close
 help-arg-pr-close-with_msg = A comment to add before closing
@@ -848,6 +855,7 @@ help-cmd-pr-search = Search a repository's pull requests
 help-arg-pr-search-state = Filter PRs by state. Default: open
 help-arg-pr-search-repo = The repo to search in
 help-arg-pr-search-all = Display all pull requests
+help-arg-pr-search-milestones = Comma-separated list of milestones to filter by
 msg-pr-search-page-argument-error = expected a positive integer
 msg-pr-search-page-total = { $total_pages ->
         [one] {$pull_requests ->
