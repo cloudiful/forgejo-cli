@@ -1541,3 +1541,47 @@ msg-key-file-not-found = Could not find keys file. Creating a new file.
 msg-save-migrated-key-file-fail = 
     {STYLE("bold", "yellow")}Could not migrate key file to the new location!
     Please ensure, fj can write to {$path}. The old file has not been modified.{STYLE("reset")}
+
+help-cmd-milestone-search = Search for milestones
+help-arg-milestone-search-state = Filter milestones by state
+help-arg-milestone-search-title = Filter milestones by title
+help-cmd-milestone-create = Create a new milestone
+help-arg-milestone-create-title = Title of the milestone to create
+help-arg-milestone-create-description = Description of the milestone to create. Omit to invoke editor
+help-arg-milestone-create-state = State of the milestone to create
+help-cmd-milestone-view = View a milestone
+help-arg-milestone-view-title = Title or ID of the milestone to view
+help-cmd-milestone-edit = Edit a milestone
+help-arg-milestone-edit-title = Title of the milestone to edit
+help-arg-milestone-edit-description = New description for the milestone
+help-arg-milestone-edit-state = New state for the milestone
+help-arg-milestone-edit-new_title = New title for the milestone
+help-cmd-milestone-delete = Delete a milestone
+help-arg-milestone-delete-title = Title or ID of the milestone to delete
+
+msg-milestone-search-total = {$milestones ->
+        [one] 1 milestone
+       *[other] {$milestones} milestones
+    }
+msg-milestone-search-entry = {$title} { $state ->
+       *[open] ({STYLE("green")}open{STYLE("reset")})
+        [closed] ({STYLE("red")}closed{STYLE("reset")})
+    } {$open} open, {$closed} closed
+msg-milestone-view =
+    {STYLE("bold")}{$title}{STYLE("reset")} { $state ->
+       *[open] ({STYLE("green")}open{STYLE("reset")})
+        [closed] ({STYLE("red")}closed{STYLE("reset")})
+    }
+    {STYLE("bright-blue")}{$open} open, {$closed} closed{STYLE("reset")}
+    created {$created_at}, updated {$updated_at}
+    { OPT($due_on) ->
+        [none] no due date
+       *[some] due: {$due_on}
+    }{ OPT($description) ->
+        [none] {""}
+       *[some] {""}
+
+       {$description}
+    }
+msg-milestone-deleted = Milestone deleted
+msg-milestone-not_found = Could not find the specified milestone
