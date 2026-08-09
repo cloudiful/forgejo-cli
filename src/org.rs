@@ -680,6 +680,7 @@ impl RepoSubcommand {
                         remote,
                         push,
                         ssh,
+                        format,
                     },
             } => {
                 let url_host = crate::host_name(repo_info.host_url());
@@ -695,6 +696,7 @@ impl RepoSubcommand {
                     remote,
                     push,
                     ssh,
+                    format,
                 )
                 .await?
             }
