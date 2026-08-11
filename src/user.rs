@@ -396,12 +396,10 @@ async fn view_user(api: &Forgejo, user: Option<&str>) -> eyre::Result<()> {
         email = user_data.email.as_deref().filter(|s| !s.is_empty()),
     );
 
-    if let Some(desc) = user_data.description.as_deref() {
-        if !desc.is_empty() {
-            println!();
-            println!("{}", crate::markdown(desc));
-            println!();
-        }
+    if let Some(desc) = user_data.description.as_deref()
+        && !desc.is_empty()
+    {
+        println!("\n{}\n", crate::markdown(desc));
     }
 
     let joined = user_data
