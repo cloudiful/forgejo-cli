@@ -883,6 +883,7 @@ help-arg-repo-create-push-long =
 
     Implies `--remote=origin` (setting remote manually overrides this)
 help-arg-repo-create-ssh = Use SSH for the new remote instead of HTTP(S)
+help-arg-repo-create-format = Specify the repository's object format. Default: sha1
 msg-repo-create-remote_exists = A remote named \"{$remote_name}\" already exists
 msg-repo-create-success = created new repo at {$url}
 msg-repo-create-detached_head = HEAD is not on a branch; cannot push to remote

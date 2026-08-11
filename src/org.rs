@@ -680,6 +680,8 @@ impl RepoSubcommand {
                         remote,
                         push,
                         ssh,
+                        #[cfg(feature = "unstable-sha256")]
+                        format,
                     },
             } => {
                 let url_host = crate::host_name(repo_info.host_url());
@@ -695,6 +697,8 @@ impl RepoSubcommand {
                     remote,
                     push,
                     ssh,
+                    #[cfg(feature = "unstable-sha256")]
+                    format,
                 )
                 .await?
             }

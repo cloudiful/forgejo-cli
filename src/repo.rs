@@ -338,6 +338,21 @@ impl std::fmt::Display for RepoArgError {
     }
 }
 
+#[derive(clap::ValueEnum, Clone, Copy, Debug)]
+pub enum ObjectFormat {
+    Sha1,
+    Sha256,
+}
+
+impl From<ObjectFormat> for forgejo_api::structs::ObjectFormatName {
+    fn from(value: ObjectFormat) -> Self {
+        match value {
+            ObjectFormat::Sha1 => forgejo_api::structs::ObjectFormatName::Sha1,
+            ObjectFormat::Sha256 => forgejo_api::structs::ObjectFormatName::Sha256,
+        }
+    }
+}
+
 #[derive(Args, Clone, Debug)]
 pub struct RepoCreateArgs {
     pub repo: String,
@@ -360,6 +375,11 @@ pub struct RepoCreateArgs {
     #[clap(help = h!("arg-repo-create-ssh"))]
     #[clap(long, short = 'S')]
     pub ssh: Option<Option<bool>>,
+
+    #[clap(help = h!("arg-repo-create-format"))]
+    #[clap(long)]
+    #[cfg(feature = "unstable-sha256")]
+    pub format: Option<ObjectFormat>,
 }
 
 #[derive(Subcommand, Clone, Debug)]
@@ -611,6 +631,8 @@ impl RepoCommand {
                         remote,
                         push,
                         ssh,
+                        #[cfg(feature = "unstable-sha256")]
+                        format,
                     },
             } => {
                 let host = RepoInfo::get_current(host_name, None, None, keys)?;
@@ -619,7 +641,19 @@ impl RepoCommand {
                 let ssh = ssh
                     .unwrap_or_else(|| Some(keys.default_ssh.contains(url_host)))
                     .unwrap_or(true);
-                create_repo(&api, None, repo, description, private, remote, push, ssh).await?;
+                create_repo(
+                    &api,
+                    None,
+                    repo,
+                    description,
+                    private,
+                    remote,
+                    push,
+                    ssh,
+                    #[cfg(feature = "unstable-sha256")]
+                    format,
+                )
+                .await?;
             }
             RepoCommand::Fork { repo, name, remote } => {
                 fn strip(s: &str) -> &str {
@@ -1369,6 +1403,7 @@ pub async fn create_repo(
     remote: Option<String>,
     push: bool,
     ssh: bool,
+    #[cfg(feature = "unstable-sha256")] format: Option<ObjectFormat>,
 ) -> eyre::Result<()> {
     if remote.is_some() || push {
         let repo = git2::Repository::discover(".")?;
@@ -1386,6 +1421,9 @@ pub async fn create_repo(
         issue_labels: None,
         license: None,
         name: repo,
+        #[cfg(feature = "unstable-sha256")]
+        object_format_name: format.map(|s| s.into()),
+        #[cfg(not(feature = "unstable-sha256"))]
         object_format_name: None,
         private: Some(private),
         readme: Some(String::new()),
