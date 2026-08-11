@@ -680,6 +680,7 @@ impl RepoSubcommand {
                         remote,
                         push,
                         ssh,
+                        #[cfg(feature = "create-repo-format-option")]
                         format,
                     },
             } => {
@@ -696,7 +697,10 @@ impl RepoSubcommand {
                     remote,
                     push,
                     ssh,
+                    #[cfg(feature = "create-repo-format-option")]
                     format,
+                    #[cfg(not(feature = "create-repo-format-option"))]
+                    None,
                 )
                 .await?
             }

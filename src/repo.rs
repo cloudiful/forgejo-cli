@@ -378,6 +378,7 @@ pub struct RepoCreateArgs {
 
     #[clap(help = h!("arg-repo-create-format"))]
     #[clap(long)]
+    #[cfg(feature = "create-repo-format-option")]
     pub format: Option<ObjectFormat>,
 }
 
@@ -630,6 +631,7 @@ impl RepoCommand {
                         remote,
                         push,
                         ssh,
+                        #[cfg(feature = "create-repo-format-option")]
                         format,
                     },
             } => {
@@ -648,7 +650,10 @@ impl RepoCommand {
                     remote,
                     push,
                     ssh,
+                    #[cfg(feature = "create-repo-format-option")]
                     format,
+                    #[cfg(not(feature = "create-repo-format-option"))]
+                    None,
                 )
                 .await?;
             }
