@@ -153,11 +153,6 @@ msg-issue-view-comment_count =
         [one] 1 条评论
        *[other] { $comments } 条评论
     }
-msg-issue-search-total =
-    { $issues ->
-        [one] 1 个议题
-       *[other] { $issues } 个议题
-    }
 msg-issue-search-entry = #{ $number }：{ $title }（作者：{ $author }）
 msg-issue-templates-none = 没有议题模板或联系信息。
 msg-issue-templates-blank_allowed = 允许使用“--no-template”
@@ -315,11 +310,6 @@ msg-pr-checkout-success =
     { $new_branch ->
        *[yes] 在新分支 { $branch_name } 上
         [no] 已将分支更新到最新提交
-    }
-msg-pr-search-count =
-    { $pull_requests ->
-        [one] 1 个合并请求
-       *[other] { $pull_requests } 个合并请求
     }
 msg-pr-search-entry = #{ $number }：{ $title }（作者：{ $author }）
 msg-pr-view-diff-volatile = 对差异所做的更改将不会保留

@@ -62,11 +62,6 @@ msg-issue-view-comment_count =
         [one] 1 kommentti
        *[other] { $comments } kommenttia
     }
-msg-issue-search-total =
-    { $issues ->
-        [one] 1 ongelma
-       *[other] { $issues } ongelmaa
-    }
 msg-issue-search-entry = #{ $number }: { $title } (tehnyt { $author })
 msg-issue-templates-blank_allowed = '--no-template' on sallittu
 msg-issue-templates-blank_not_allowed = '--no-template' ei ole sallittu
@@ -89,11 +84,6 @@ msg-pr-view-comment_count =
     }
 msg-pr-create-success = luotu vetopyyntö #{ $number }: { $title }
 msg-pr-create-agit_success = luotu vetopyyntö: { $title }
-msg-pr-search-count =
-    { $pull_requests ->
-        [one] 1 vetopyyntö
-       *[other] { $pull_requests } vetopyyntöä
-    }
 msg-pr-search-entry = #{ $number }: { $title } (tehnyt { $author })
 msg-repo-create-remote_exists = Etävarasto nimellä \"{ $remote_name }\" on jo olemassa
 msg-repo-create-branch_invalid_utf8 = haaran nimi on virheellistä utf-8:aa

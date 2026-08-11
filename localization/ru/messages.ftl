@@ -107,12 +107,6 @@ msg-issue-view-comment_count =
         [few] { $comments } комментария
        *[many] { $comments } комментариев
     }
-msg-issue-search-total =
-    { $issues ->
-        [one] 1 задача
-        [few] { $issues } задачи
-       *[many] { $issues } задач
-    }
 help-arg-repo = Используемый репозиторий
 help-arg-remote = git remote, указывающая на используемый удалённый репозиторий
 help-cmd-auth-login-long =

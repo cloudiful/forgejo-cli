@@ -153,11 +153,6 @@ msg-issue-view-comment_count =
         [one] 1 Kommentar
        *[other] { $comments } Kommentare
     }
-msg-issue-search-total =
-    { $issues ->
-        [one] 1 Issue
-       *[other] { $issues } Issues
-    }
 msg-issue-search-entry = #{ $number }: { $title } (von { $author })
 msg-issue-templates-none = Keine Issuevorlagen oder Kontaktdaten.
 msg-issue-templates-blank_allowed = '--no-template' ist zulässig
@@ -314,11 +309,6 @@ msg-pr-checkout-success =
     { $new_branch ->
        *[yes] Auf neuem Branch { $branch_name }
         [no] Branch wurde auf neusten Commit aktualisiert
-    }
-msg-pr-search-count =
-    { $pull_requests ->
-        [one] 1 Pull-Request
-       *[other] { $pull_requests } Pull-Requests
     }
 msg-pr-search-entry = #{ $number }: { $title } (von { $author })
 msg-pr-view-diff-volatile = Änderungen in der Diff werden nicht beibehalten.
