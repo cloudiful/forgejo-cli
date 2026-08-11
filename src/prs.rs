@@ -1,11 +1,12 @@
 use std::collections::BTreeMap;
+use std::num::NonZeroU32;
 use std::path::PathBuf;
 use std::{io::Write, str::FromStr};
 
 use clap::{Args, Subcommand};
 use eyre::{Context, OptionExt};
 use forgejo_api::{
-    Forgejo,
+    CountHeader, Forgejo,
     structs::{
         CreatePullRequestOption, MergePullRequestOption, PullReview, PullReviewComment,
         RepoGetPullRequestCommitsQuery, RepoGetPullRequestFilesQuery, StateType,
@@ -52,6 +53,14 @@ pub enum PrSubcommand {
         #[clap(help = h!("arg-pr-search-repo"))]
         #[clap(long, short)]
         repo: Option<RepoArg>,
+
+        #[clap(conflicts_with = "all", value_parser = parse_non_zero_u32)]
+        #[clap(long, short, default_value_t = NonZeroU32::MIN)]
+        page: NonZeroU32,
+
+        #[clap(help = h!("arg-pr-search-all"))]
+        #[clap(long, conflicts_with = "page")]
+        all: bool,
     },
     #[clap(about = h!("cmd-pr-create"))]
     Create {
@@ -395,6 +404,16 @@ pub enum ReviewCommand {
     },
 }
 
+// Used in `issues` module
+pub const SEARCH_PAGE_SIZE: u32 = 25;
+
+pub fn parse_non_zero_u32(s: &str) -> eyre::Result<NonZeroU32> {
+    s.parse::<u32>()
+        .ok()
+        .and_then(NonZeroU32::new)
+        .ok_or_else(|| ftl_eyre!("msg-pr-search-page-argument-error"))
+}
+
 impl PrCommand {
     pub async fn run(self, keys: &mut crate::KeyInfo, host_name: Option<&str>) -> eyre::Result<()> {
         use PrSubcommand::*;
@@ -481,7 +500,21 @@ impl PrCommand {
                 assignee,
                 state,
                 repo: _,
-            } => view_prs(repo, &api, query, labels, creator, assignee, state).await?,
+                page,
+                all,
+            } => {
+                view_prs(
+                    repo,
+                    &api,
+                    query,
+                    labels,
+                    creator,
+                    assignee,
+                    state,
+                    if all { None } else { Some(page) },
+                )
+                .await?
+            }
             Assign { pr, users } => {
                 let (repo, pr) = try_get_pr_number(repo, &api, pr.map(|pr| pr.number)).await?;
                 crate::issues::assign_to_issue(&repo, &api, pr, users).await?
@@ -1711,6 +1744,7 @@ async fn checkout_pr(
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn view_prs(
     repo: &RepoName,
     api: &Forgejo,
@@ -1719,6 +1753,7 @@ async fn view_prs(
     creator: Option<String>,
     assignee: Option<String>,
     state: Option<crate::issues::State>,
+    page: Option<NonZeroU32>,
 ) -> eyre::Result<()> {
     let labels = labels
         .map(|s| s.split(',').map(|s| s.to_string()).collect::<Vec<_>>())
@@ -1736,10 +1771,41 @@ async fn view_prs(
         mentioned_by: None,
         sort: None,
     };
-    let (_, prs) = api
-        .issue_list_issues(repo.owner(), repo.name(), query)
-        .await?;
-    ftl_println!("msg-pr-search-count", pull_requests = prs.len());
+    let prs = if let Some(page) = page {
+        let page = page.get();
+        let (header, prs) = api
+            .issue_list_issues(repo.owner(), repo.name(), query)
+            .page_size(SEARCH_PAGE_SIZE)
+            .page(page)
+            .await?;
+
+        let total_pages = header
+            .count()
+            .ok_or_eyre("expected header to return a number")?
+            .div_ceil(SEARCH_PAGE_SIZE as usize);
+
+        ftl_println!(
+            "msg-pr-search-page-total",
+            page,
+            total_pages,
+            pull_requests = prs.len(),
+        );
+
+        prs
+    } else {
+        let prs = api
+            .issue_list_issues(repo.owner(), repo.name(), query)
+            .all()
+            .await?;
+        ftl_println!(
+            "msg-pr-search-page-total",
+            page = 1,
+            total_pages = 1,
+            pull_requests = prs.len()
+        );
+        prs
+    };
+
     for pr in prs {
         let number = pr
             .number

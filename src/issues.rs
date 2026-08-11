@@ -1,14 +1,15 @@
 use std::collections::BTreeMap;
+use std::num::NonZeroU32;
 use std::path::PathBuf;
 use std::str::FromStr;
 
 use clap::{Args, Subcommand};
 use eyre::{Context, OptionExt, eyre};
-use forgejo_api::Forgejo;
 use forgejo_api::structs::{
     Comment, CreateIssueCommentOption, CreateIssueOption, EditIssueOption, IssueGetCommentsQuery,
     IssueMeta,
 };
+use forgejo_api::{CountHeader, Forgejo};
 
 use crate::repo::{RepoArg, RepoInfo, RepoName};
 use crate::{ftl_bail, ftl_ensure, ftl_eprintln, ftl_eyre, ftl_println, h, lh};
@@ -116,6 +117,14 @@ pub enum IssueSubcommand {
         #[clap(help = h!("arg-issue-search-state"))]
         #[clap(long, short)]
         state: Option<State>,
+
+        #[clap(conflicts_with = "all", value_parser = crate::prs::parse_non_zero_u32)]
+        #[clap(long, short, default_value_t = NonZeroU32::MIN)]
+        page: NonZeroU32,
+
+        #[clap(help = h!("arg-issue-search-all"))]
+        #[clap(long, conflicts_with = "page")]
+        all: bool,
     },
     #[clap(about = h!("cmd-issue-view"))]
     View {
@@ -339,7 +348,21 @@ impl IssueCommand {
                 creator,
                 assignee,
                 state,
-            } => view_issues(repo, &api, query, labels, creator, assignee, state).await?,
+                page,
+                all,
+            } => {
+                view_issues(
+                    repo,
+                    &api,
+                    query,
+                    labels,
+                    creator,
+                    assignee,
+                    state,
+                    if all { None } else { Some(page) },
+                )
+                .await?
+            }
             Templates { .. } => view_issue_templates(repo, &api).await?,
             Edit { issue, command } => match command {
                 EditCommand::Title { new_title } => {
@@ -642,6 +665,8 @@ pub async fn view_issue(repo: &RepoName, api: &Forgejo, number: i64) -> eyre::Re
     ftl_println!("msg-issue-view-comment_count", comments);
     Ok(())
 }
+
+#[allow(clippy::too_many_arguments)]
 async fn view_issues(
     repo: &RepoName,
     api: &Forgejo,
@@ -650,7 +675,9 @@ async fn view_issues(
     creator: Option<String>,
     assignee: Option<String>,
     state: Option<State>,
+    page: Option<NonZeroU32>,
 ) -> eyre::Result<()> {
+    const PAGE_SIZE: u32 = crate::prs::SEARCH_PAGE_SIZE;
     let labels = labels
         .map(|s| s.split(',').map(|s| s.to_string()).collect::<Vec<_>>())
         .unwrap_or_default();
@@ -667,11 +694,41 @@ async fn view_issues(
         mentioned_by: None,
         sort: None,
     };
-    let issues = api
-        .issue_list_issues(repo.owner(), repo.name(), query)
-        .all()
-        .await?;
-    ftl_println!("msg-issue-search-total", issues = issues.len());
+    let issues = if let Some(page) = page {
+        let page = page.get();
+        let (header, issues) = api
+            .issue_list_issues(repo.owner(), repo.name(), query)
+            .page_size(PAGE_SIZE)
+            .page(page)
+            .await?;
+
+        let total_pages = header
+            .count()
+            .ok_or_eyre("expected header to return a number")?
+            .div_ceil(PAGE_SIZE as usize);
+
+        ftl_println!(
+            "msg-issue-search-page-total",
+            page,
+            total_pages,
+            issues = issues.len(),
+        );
+
+        issues
+    } else {
+        let issues = api
+            .issue_list_issues(repo.owner(), repo.name(), query)
+            .all()
+            .await?;
+        ftl_println!(
+            "msg-issue-search-page-total",
+            page = 1,
+            total_pages = 1,
+            issues = issues.len(),
+        );
+        issues
+    };
+
     for issue in issues {
         let number = issue
             .number

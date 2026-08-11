@@ -439,9 +439,16 @@ msg-view-assignees-empty = No one is assigned.
 help-cmd-issue-search = Search for an issue in a repo
 help-arg-issue-search-repo = The repo to search in
 help-arg-issue-search-state = Filter issues by state. Default: open
-msg-issue-search-total = { $issues ->
-        [one] 1 issue
-       *[other] {$issues} issues
+help-arg-issue-search-all = Display all issues
+msg-issue-search-page-total = { $total_pages ->
+        [one] {$issues ->
+            [one] 1 issue
+           *[other] {$issues} issues
+        }
+       *[other] Page {$page} out of {$total_pages} pages in total ({$issues ->
+            [one] 1 issue
+           *[other] {$issues} issues
+       })
     }
 msg-issue-search-entry = #{$number}: {$title} (by {$author})
 
@@ -840,9 +847,17 @@ help-arg-pr-browse-id = The pull request to open in your browser
 help-cmd-pr-search = Search a repository's pull requests
 help-arg-pr-search-state = Filter PRs by state. Default: open
 help-arg-pr-search-repo = The repo to search in
-msg-pr-search-count = {$pull_requests ->
-        [one] 1 pull request
-       *[other] {$pull_requests} pull requests
+help-arg-pr-search-all = Display all pull requests
+msg-pr-search-page-argument-error = expected a positive integer
+msg-pr-search-page-total = { $total_pages ->
+        [one] {$pull_requests ->
+            [one] 1 pull request
+           *[other] {$pull_requests} pull requests
+        }
+       *[other] Page {$page} out of {$total_pages} pages in total ({$pull_requests ->
+            [one] 1 pull request
+           *[other] {$pull_requests} pull requests
+       })
     }
 msg-pr-search-entry = #{$number}: {$title} (by {$author})
 
