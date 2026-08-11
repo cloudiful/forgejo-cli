@@ -32,7 +32,7 @@ update-check = ["dep:semver"]
 "locale.ru" = []
 "locale.tok" = []
 "locale.zh-Hans" = []
-create-repo-format-option = []
+unstable-sha256 = []
 
 [dependencies]
 auth-git2 = "0.6.0"

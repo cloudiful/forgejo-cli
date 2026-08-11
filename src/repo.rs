@@ -378,7 +378,7 @@ pub struct RepoCreateArgs {
 
     #[clap(help = h!("arg-repo-create-format"))]
     #[clap(long)]
-    #[cfg(feature = "create-repo-format-option")]
+    #[cfg(feature = "unstable-sha256")]
     pub format: Option<ObjectFormat>,
 }
 
@@ -631,7 +631,7 @@ impl RepoCommand {
                         remote,
                         push,
                         ssh,
-                        #[cfg(feature = "create-repo-format-option")]
+                        #[cfg(feature = "unstable-sha256")]
                         format,
                     },
             } => {
@@ -650,10 +650,8 @@ impl RepoCommand {
                     remote,
                     push,
                     ssh,
-                    #[cfg(feature = "create-repo-format-option")]
+                    #[cfg(feature = "unstable-sha256")]
                     format,
-                    #[cfg(not(feature = "create-repo-format-option"))]
-                    None,
                 )
                 .await?;
             }
@@ -1405,7 +1403,7 @@ pub async fn create_repo(
     remote: Option<String>,
     push: bool,
     ssh: bool,
-    format: Option<ObjectFormat>,
+    #[cfg(feature = "unstable-sha256")] format: Option<ObjectFormat>,
 ) -> eyre::Result<()> {
     if remote.is_some() || push {
         let repo = git2::Repository::discover(".")?;
@@ -1423,7 +1421,10 @@ pub async fn create_repo(
         issue_labels: None,
         license: None,
         name: repo,
+        #[cfg(feature = "unstable-sha256")]
         object_format_name: format.map(|s| s.into()),
+        #[cfg(not(feature = "unstable-sha256"))]
+        object_format_name: None,
         private: Some(private),
         readme: Some(String::new()),
         template: Some(false),
