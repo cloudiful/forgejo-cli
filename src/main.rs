@@ -318,16 +318,14 @@ fn ssh_url_parse(s: &str) -> Result<url::Url, url::ParseError> {
         new_s.push_str(&s[auth_end..].replacen(":", "/", 1));
         url::Url::parse(&new_s)
     })?;
-    if let Some(host_str) = url.host_str() {
-        if let Some(ssh_config) = get_ssh_config() {
-            let host_params = ssh_config.query(host_str);
-            if let Some(host_name) = host_params.host_name {
-                // Expand '%h' and '%%' per ssh_config(5)
-                let mut expanded = host_name.replace("%h", host_str);
-                expanded = expanded.replace("%%", "%");
-                url.set_host(Some(&expanded))?;
-            }
-        }
+    if let Some(host_str) = url.host_str()
+        && let Some(ssh_config) = get_ssh_config()
+        && let Some(host_name) = ssh_config.query(host_str).host_name
+    {
+        // Expand '%h' and '%%' per ssh_config(5)
+        let mut expanded = host_name.replace("%h", host_str);
+        expanded = expanded.replace("%%", "%");
+        url.set_host(Some(&expanded))?;
     } // Let the caller handle URLs without a host
 
     Ok(url)
@@ -1107,7 +1105,7 @@ pub async fn edit_labels(
 
     if !unknown_labels.is_empty() {
         if unknown_labels.len() == 1 {
-            println!("'{}' doesn't exist", &unknown_labels[0]);
+            println!("'{}' doesn't exist", unknown_labels[0]);
         } else {
             let SpecialRender { bullet, .. } = *crate::special_render();
             println!("The following labels don't exist:");

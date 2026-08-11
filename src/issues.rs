@@ -652,11 +652,10 @@ pub async fn view_issue(repo: &RepoName, api: &Forgejo, number: i64) -> eyre::Re
 
     crate::render_label_list(&issue.labels.unwrap_or_default())?;
 
-    if let Some(body) = &issue.body {
-        if !body.is_empty() {
-            println!();
-            println!("{}", crate::markdown(body));
-        }
+    if let Some(body) = &issue.body
+        && !body.is_empty()
+    {
+        println!("\n{}", crate::markdown(body));
     }
     println!();
 

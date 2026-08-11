@@ -810,11 +810,10 @@ pub async fn view_pr(repo: &RepoName, api: &Forgejo, id: Option<i64>) -> eyre::R
 
     crate::render_label_list(pr.labels.as_deref().unwrap_or_default())?;
 
-    if let Some(body) = &pr.body {
-        if !body.trim().is_empty() {
-            println!();
-            println!("{}", crate::markdown(body));
-        }
+    if let Some(body) = &pr.body
+        && !body.trim().is_empty()
+    {
+        println!("\n{}", crate::markdown(body));
     }
     println!();
 
@@ -1030,10 +1029,10 @@ fn print_pr_review(review: &PullReview) -> eyre::Result<()> {
         state,
     );
 
-    if let Some(body) = &review.body {
-        if !body.trim().is_empty() {
-            println!("{}", crate::markdown(body));
-        }
+    if let Some(body) = &review.body
+        && !body.trim().is_empty()
+    {
+        println!("{}", crate::markdown(body));
     }
 
     Ok(())

@@ -146,28 +146,27 @@ impl LoginInfo {
             expires_at,
             ..
         } = self
+            && time::OffsetDateTime::now_utc() >= *expires_at
         {
-            if time::OffsetDateTime::now_utc() >= *expires_at {
-                let api = Forgejo::with_user_agent(Auth::None, url.clone(), crate::USER_AGENT)?;
-                let client_id = crate::auth::get_client_info_for(url)
-                    .await?
-                    .ok_or_else(|| eyre::eyre!("Can't refresh token: no client info for {url}."))?;
-                let response = api
-                    .oauth_get_access_token(forgejo_api::structs::OAuthTokenRequest::Refresh {
-                        refresh_token,
-                        client_id: &client_id,
-                        client_secret: "",
-                    })
-                    .await?;
-                *token = response.access_token;
-                *refresh_token = response.refresh_token;
-                // A minute less, in case any weirdness happens at the exact moment it
-                // expires. Better to refresh slightly too soon than slightly too late.
-                let expires_in =
-                    std::time::Duration::from_secs(response.expires_in.saturating_sub(60) as u64);
-                *expires_at = time::OffsetDateTime::now_utc() + expires_in;
-                return Ok(true);
-            }
+            let api = Forgejo::with_user_agent(Auth::None, url.clone(), crate::USER_AGENT)?;
+            let client_id = crate::auth::get_client_info_for(url)
+                .await?
+                .ok_or_else(|| eyre::eyre!("Can't refresh token: no client info for {url}."))?;
+            let response = api
+                .oauth_get_access_token(forgejo_api::structs::OAuthTokenRequest::Refresh {
+                    refresh_token,
+                    client_id: &client_id,
+                    client_secret: "",
+                })
+                .await?;
+            *token = response.access_token;
+            *refresh_token = response.refresh_token;
+            // A minute less, in case any weirdness happens at the exact moment it
+            // expires. Better to refresh slightly too soon than slightly too late.
+            let expires_in =
+                std::time::Duration::from_secs(response.expires_in.saturating_sub(60) as u64);
+            *expires_at = time::OffsetDateTime::now_utc() + expires_in;
+            return Ok(true);
         }
         Ok(false)
     }

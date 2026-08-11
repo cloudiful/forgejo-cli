@@ -254,38 +254,38 @@ async fn view_org(api: &Forgejo, name: String) -> eyre::Result<()> {
     println!();
 
     let mut first = true;
-    if let Some(website) = &org.website {
-        if !website.is_empty() {
-            print!("{bold}{website}{reset}");
-            first = false;
-        }
+    if let Some(website) = &org.website
+        && !website.is_empty()
+    {
+        print!("{bold}{website}{reset}");
+        first = false;
     }
-    if let Some(email) = &org.email {
-        if !email.is_empty() {
-            if !first {
-                print!(" {dash} ");
-            }
-            print!("{email}");
-            first = false;
+    if let Some(email) = &org.email
+        && !email.is_empty()
+    {
+        if !first {
+            print!(" {dash} ");
         }
+        print!("{email}");
+        first = false;
     }
-    if let Some(location) = &org.location {
-        if !location.is_empty() {
-            if !first {
-                print!(" {dash} ");
-            }
-            print!("{location}");
-            first = false;
+    if let Some(location) = &org.location
+        && !location.is_empty()
+    {
+        if !first {
+            print!(" {dash} ");
         }
+        print!("{location}");
+        first = false;
     }
     if !first {
         println!();
     }
 
-    if let Some(description) = &org.description {
-        if !description.is_empty() {
-            println!("\n{}\n", crate::markdown(description));
-        }
+    if let Some(description) = &org.description
+        && !description.is_empty()
+    {
+        println!("\n{}\n", crate::markdown(description));
     }
 
     Ok(())

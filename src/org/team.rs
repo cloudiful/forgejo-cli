@@ -226,10 +226,10 @@ async fn view_team(
         .is_some_and(|p| p == forgejo_api::structs::TeamPermission::Admin);
     ftl_println!("msg-org-team-view", name, org, admin = is_admin.ftl());
 
-    if let Some(description) = &team.description {
-        if !description.is_empty() {
-            println!("\n{}", crate::markdown(description));
-        }
+    if let Some(description) = &team.description
+        && !description.is_empty()
+    {
+        println!("\n{}", crate::markdown(description));
     }
 
     if list_permissions {
