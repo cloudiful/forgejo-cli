@@ -110,7 +110,6 @@ msg-issue-view-header =
        *[other] $state
     }
 msg-issue-view-comment_count = toki { $comments } li lon toki ni
-msg-issue-search-total = toki { $issues } li lon poki ni
 msg-issue-templates-blank_allowed = nimi "--no-template" li ken
 msg-issue-templates-blank_not_allowed = nimi "--no-template" li ken ala
 msg-issue-search-entry = toki "{ $title }" li nanpa { $number } li tan { $author }
@@ -386,7 +385,6 @@ msg-repo-create-branch_invalid_utf8 = nimi linja o kepeken nasin sitelen UTF-8
 msg-repo-create-detached_head = awen 'HEAD' li lon ala linja la mi ken ala pana
 msg-repo-create-success = poki sina li open lon lipu { $url }
 msg-repo-name_needed = mi ken ala kama sona e nimi poki. o pana e nimi ni
-msg-pr-search-count = ante wile { $pull_requests }
 msg-pr-checkout-success =
     sina lon ante wile nanpa #{ $number }: "{ $title }"
     { $new_branch ->

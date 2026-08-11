@@ -100,9 +100,9 @@ msg-org-team-view-read_only = 只读：
 msg-org-team-view-read_write = 读/写：
 msg-org-team-view-perms-wiki = Wiki
 msg-org-team-view-perms-ext_wiki = 外部 Wiki
-msg-org-team-view-perms-issues = 问题
-msg-org-team-view-perms-ext_issues = 外部问题
-msg-org-team-view-perms-pulls = 拉取请求
+msg-org-team-view-perms-issues = 议题
+msg-org-team-view-perms-ext_issues = 外部议题
+msg-org-team-view-perms-pulls = 合并请求
 msg-org-team-view-perms-projects = 项目
 msg-org-team-view-perms-actions = CI
 msg-org-team-view-perms-code = 代码
@@ -132,15 +132,15 @@ msg-org-team-member-list-no_results = 无结果。
 msg-org-team-member-list-page_number = 第 { $page } 页，共 { $total } 页
 msg-org-team-member-add-success = 已将 { STYLE("bold", "bright-cyan") }{ $user }{ STYLE("reset") } 添加到团队 { STYLE("bold", "bright-blue") }{ $team }{ STYLE("reset") }
 msg-org-team-member-rm-success = 已将 { STYLE("bold", "bright-cyan") }{ $user }{ STYLE("reset") } 从团队 { STYLE("bold", "bright-blue") }{ $team }{ STYLE("reset") } 中移除
-msg-issue-create-no_templates = { $owner }/{ $repo } 没有任何问题模板
+msg-issue-create-no_templates = { $owner }/{ $repo } 没有任何议题模板
 msg-issue-create-templates_required =
     { $owner }/{ $repo } 要求使用模板。
-    请使用 `--template <名称>` 选择一个。
+    请使用 `--template <NAME>` 选择一个。
 msg-issue-create-templates_enabled =
-    { $owner }/{ $repo } 使用问题模板。
-    请使用 `--template <名称>` 选择一个，
+    { $owner }/{ $repo } 使用议题模板。
+    请使用 `--template <NAME>` 选择一个，
     或使用 `--no-template` 从头编写一个。
-msg-issue-create-success = 已创建问题 #{ $number }：{ $title }
+msg-issue-create-success = 已创建议题 #{ $number }：{ $title }
 msg-issue-view-header =
     { STYLE("yellow") }{ $title } { STYLE("dark-grey") }#{ $number }{ STYLE("reset") }
     作者：{ STYLE("white") }{ $author }{ STYLE("reset") } { -dash } { $state ->
@@ -153,13 +153,8 @@ msg-issue-view-comment_count =
         [one] 1 条评论
        *[other] { $comments } 条评论
     }
-msg-issue-search-total =
-    { $issues ->
-        [one] 1 个问题
-       *[other] { $issues } 个问题
-    }
 msg-issue-search-entry = #{ $number }：{ $title }（作者：{ $author }）
-msg-issue-templates-none = 没有问题模板或联系信息。
+msg-issue-templates-none = 没有议题模板或联系信息。
 msg-issue-templates-blank_allowed = 允许使用“--no-template”
 msg-issue-templates-blank_not_allowed = 不允许使用“--no-template”
 msg-issue-view-comments-comment_header =
@@ -208,8 +203,8 @@ msg-issue-unassign-success =
                *[other] （{ $duplicate } 个用户未被分配）
             }
     }
-msg-issue-close-success = 已关闭问题 #{ $number }：“{ $title }”
-msg-pr-couldnt_guess = 无法猜测拉取请求编号，请指定
+msg-issue-close-success = 已关闭议题 #{ $number }：“{ $title }”
+msg-pr-couldnt_guess = 无法猜测合并请求编号，请指定
 msg-pr-not_found = 找不到 PR
 msg-pr-view-header =
     { STYLE("yellow") }{ $title } { STYLE("dark-grey") }#{ $number }{ STYLE("reset") }
@@ -229,7 +224,7 @@ msg-pr-view-comment_count =
         [one] 1 条评论
        *[other] { $comments } 条评论
     }
-msg-pr-status-merged = { STYLE("bright-magenta") }已合并{ STYLE("reset") }，由 { $merged_by } 于 { DATETIME($created_at, dateStyle: "long", timeStyle: "long") } 操作
+msg-pr-status-merged = { STYLE("bright-magenta") }已由{ STYLE("reset") } { $merged_by } 于 { DATETIME($created_at, dateStyle: "long", timeStyle: "long") } 合并
 msg-pr-status-header =
     { $state ->
         [draft] { STYLE("light-grey") }草稿{ STYLE("reset") } { -dash } 无法合并草稿 PR
@@ -251,21 +246,21 @@ msg-pr-status-entry =
         [error] { STYLE("bright-red") }错误{ STYLE("reset") }
        *[other] 未知
     } { -dash } { $context }
-msg-pr-review-list-none = 无评论。
-msg-pr-review-list-only_stale = 只有已过时或已驳回的评论，请使用 --all 来显示它们。
+msg-pr-review-list-none = 无评审。
+msg-pr-review-list-only_stale = 只有陈旧或已驳回的评审，请使用 --all 来显示它们。
 msg-pr-review-list-review_header =
     { $review_type ->
         [approved] { STYLE("bright-green") }已批准{ STYLE("reset") }
         [changes-requested] { STYLE("bright-yellow") }请求变更{ STYLE("reset") }
         [comment] { STYLE("bright-yellow") }评论{ STYLE("reset") }
-        [pending] { STYLE("light-grey") }待审核{ STYLE("reset") }
+        [pending] { STYLE("light-grey") }待评审{ STYLE("reset") }
        *[other] 未知
     }，来自 { STYLE("bold") }{ $reviewer }{ STYLE("reset") }
     { STYLE("dark-grey") }{ $comments ->
         [one] 1 条评论
        *[other] { $comments } 条评论
     }，发表于 { DATETIME($timestamp, dateStyle: "long", timeStyle: "short") }{ STYLE("reset") } { $state ->
-        [stale] { STYLE("bold") }（已过时）{ STYLE("reset") }
+        [stale] { STYLE("bold") }（陈旧）{ STYLE("reset") }
         [dismissed] { STYLE("bold") }（已驳回）{ STYLE("reset") }
        *[other] { "" }
     }
@@ -275,9 +270,9 @@ msg-pr-review-list-comment_header =
        *[none] { "" }
         [some] （由 { $resolver } 解决）
     }：
-msg-pr-create-cross_instance = 无法跨实例创建拉取请求；基础分支位于 { $base_instance }，而头部分支跟踪的是 { $head_instance }
-msg-pr-create-success = 已创建拉取请求 #{ $number }：{ $title }
-msg-pr-create-agit_success = 已创建拉取请求：{ $title }
+msg-pr-create-cross_instance = 无法跨实例创建合并请求；基础分支位于 { $base_instance }，而头部分支跟踪的是 { $head_instance }
+msg-pr-create-success = 已创建合并请求 #{ $number }：{ $title }
+msg-pr-create-agit_success = 已创建合并请求：{ $title }
 msg-pr-create-agit_push_cfg_question =
     是否要设置所需的 git 配置项，
     以便 `git push` 对此 PR 生效？
@@ -306,20 +301,15 @@ msg-pr-create-agit_push_cfg_help = 这将设置以下配置选项：
 msg-pr-merge-commit_title_unsupported-rebase = 变基不支持提交标题
 msg-pr-merge-commit_title_unsupported-ff = ff-only 不支持提交标题
 msg-pr-merge-commit_title_unsupported-manual = 手动合并不支持提交标题
-msg-pr-merge-default_message = 审阅地址：{ $pr_url }
+msg-pr-merge-default_message = 评审地址：{ $pr_url }
 msg-pr-merge-success = 已将 PR #{ $number }“{ $title }”合并到“{ $base_branch }”
 msg-pr-checkout-dirty = 无法检出 PR；工作目录存在未提交的更改
-msg-pr-checkout-not_fork = 无法获取父仓库，{ $repo } 不是复刻仓库
+msg-pr-checkout-not_fork = 无法获取父仓库，{ $repo } 不是分叉仓库
 msg-pr-checkout-success =
     已检出 PR #{ $number }：{ $title }
     { $new_branch ->
        *[yes] 在新分支 { $branch_name } 上
         [no] 已将分支更新到最新提交
-    }
-msg-pr-search-count =
-    { $pull_requests ->
-        [one] 1 个拉取请求
-       *[other] { $pull_requests } 个拉取请求
     }
 msg-pr-search-entry = #{ $number }：{ $title }（作者：{ $author }）
 msg-pr-view-diff-volatile = 对差异所做的更改将不会保留
@@ -338,7 +328,7 @@ msg-repo-create-success = 已在 { $url } 创建新仓库
 msg-repo-create-detached_head = HEAD 不在任何分支上；无法推送到远程仓库
 msg-repo-create-branch_invalid_utf8 = 分支名称包含无效的 UTF-8 字符
 msg-repo-fork-conflicting_hosts = 主机 { $host_a } 和 { $host_b } 冲突，请仅指定一个
-msg-repo-fork-success = 已将 { $parent_owner }/{ $parent_name } 复刻到 { $fork_name }
+msg-repo-fork-success = 已将 { $parent_owner }/{ $parent_name } 分叉到 { $fork_name }
 msg-repo-migrate-git_only = 从 `git` 服务迁移不支持除 LFS 之外的迁移项目。请指定其他服务或移除包含的项目
 msg-repo-migrate-username_prompt = 用户名：
 msg-repo-migrate-password_prompt = 密码：
@@ -346,7 +336,7 @@ msg-repo-migrate-token_prompt = 令牌：
 msg-repo-migrate-migrating = 正在迁移...
 msg-repo-migrate-success = 完成！在线查看：{ $url }
 msg-repo-view-name = { $repo_name }
-msg-repo-view-is_fork = 派生自 { $parent }
+msg-repo-view-is_fork = 分叉自 { $parent }
 msg-repo-view-is_mirror = 镜像自 { $mirror_of }
 msg-repo-view-primary_language = 主要语言为 { $language }
 msg-repo-view-stars =
@@ -357,13 +347,13 @@ msg-repo-view-stars =
 msg-repo-view-watching = { $watching } 人关注中
 msg-repo-view-forks =
     { $forks ->
-        [one] 1 个复刻
-       *[other] { $forks } 个复刻
+        [one] 1 个分叉
+       *[other] { $forks } 个分叉
     }
 msg-repo-view-issues =
     { $issues ->
-        [one] 1 个问题
-       *[other] { $issues } 个问题
+        [one] 1 个议题
+       *[other] { $issues } 个议题
     }
 msg-repo-view-prs =
     { $pull_requests ->
@@ -375,7 +365,7 @@ msg-repo-view-releases =
         [one] 1 个版本发布
        *[other] { $releases } 个版本发布
     }
-msg-repo-view-external_tracker = 问题跟踪器位于 { $url }
+msg-repo-view-external_tracker = 议题跟踪器位于 { $url }
 msg-repo-view-url = 在线查看：{ $url }
 msg-repo-readme-none = 仓库没有 README
 msg-repo-clone-preparing = { "   " }正在准备...
@@ -383,8 +373,8 @@ msg-repo-clone-downloading = { " " }正在下载... { NUMBER($percent, maximumFr
 msg-repo-clone-resolving = { "   " }正在解析... { NUMBER($percent, maximumFractionDigits: 2) }%
 msg-repo-clone-finishing_up = 正在完成...
 msg-repo-clone-success = 已将 { $repo } 克隆到 { $path }
-msg-repo-star-success = 已收藏 { $owner }/{ $repo }！
-msg-repo-unstar-success = 已取消收藏 { $owner }/{ $repo }！
+msg-repo-star-success = 已点赞 { $owner }/{ $repo }！
+msg-repo-unstar-success = 已取消点赞 { $owner }/{ $repo }！
 msg-repo-delete-confirmation_prompt = 您确定要删除 { $owner }/{ $name } 吗？（y/N）
     .yes =
         是
@@ -451,8 +441,8 @@ msg-user-followers-other = 关注 { $user } 的人：
 msg-user-followers-self = 关注您的人：
 msg-user-block-success = 已屏蔽 { $user }
 msg-user-unblock-success = 已解除屏蔽 { $user }
-msg-user-repos-none-starred-other = { $name } 未收藏任何仓库
-msg-user-repos-none-starred-self = 您还没有收藏任何仓库
+msg-user-repos-none-starred-other = { $name } 未点赞任何仓库
+msg-user-repos-none-starred-self = 您还没有点赞任何仓库
 msg-user-repos-none-other = { $name } 没有任何仓库
 msg-user-repos-none-self = 您没有任何仓库
 msg-user-repos-list_footer =
@@ -468,28 +458,28 @@ msg-user-orgs-count =
         [one] 1 个组织
        *[other] { $organizations } 个组织
     }
-msg-activity-created_fork = { STYLE("bold") }{ $actor }{ STYLE("reset") } 将仓库 { STYLE("bold", "yellow") }{ $parent_repo_name }{ STYLE("reset") } 复刻到 { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") }
+msg-activity-created_fork = { STYLE("bold") }{ $actor }{ STYLE("reset") } 将仓库 { STYLE("bold", "yellow") }{ $parent_repo_name }{ STYLE("reset") } 分叉到 { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") }
 msg-activity-created_mirror = { STYLE("bold") }{ $actor }{ STYLE("reset") } 创建了镜像 { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") }
 msg-activity-created_repo = { STYLE("bold") }{ $actor }{ STYLE("reset") } 创建了仓库 { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") }
 msg-activity-renamed_repo = { STYLE("bold") }{ $actor }{ STYLE("reset") } 将仓库从 { STYLE("bold", "yellow") }"{ $old_name }"{ STYLE("reset") } 重命名为 { STYLE("bold", "yellow") }{ $new_name }{ STYLE("reset") }
-msg-activity-starred_repo = { STYLE("bold") }{ $actor }{ STYLE("reset") } 收藏了仓库 { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") }
+msg-activity-starred_repo = { STYLE("bold") }{ $actor }{ STYLE("reset") } 点赞了仓库 { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") }
 msg-activity-watched_repo = { STYLE("bold") }{ $actor }{ STYLE("reset") } 关注了仓库 { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") }
 msg-activity-pushed_commit = { STYLE("bold") }{ $actor }{ STYLE("reset") } 推送到 { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") } 上的 { STYLE("bold", "bright-cyan") }{ $branch }{ STYLE("reset") }
-msg-activity-created_issue = { STYLE("bold") }{ $actor }{ STYLE("reset") } 开启了问题 { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
-msg-activity-created_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } 创建了拉取请求 { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
+msg-activity-created_issue = { STYLE("bold") }{ $actor }{ STYLE("reset") } 开启了议题 { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
+msg-activity-created_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } 创建了合并请求 { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
 msg-activity-transferred_repo = { STYLE("bold") }{ $actor }{ STYLE("reset") } 将仓库 { STYLE("bold", "yellow") }"{ $old_name }"{ STYLE("reset") } 转移至 { STYLE("bold", "yellow") }{ $new_name }{ STYLE("reset") }
 msg-activity-pushed_tag = { STYLE("bold") }{ $actor }{ STYLE("reset") } 将标签 { STYLE("bold", "bright-cyan") }{ $tag_name }{ STYLE("reset") } 推送到 { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") }
-msg-activity-commented_issue = { STYLE("bold") }{ $actor }{ STYLE("reset") } 评论了问题 { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
-msg-activity-merged_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } 合并了拉取请求 { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
-msg-activity-closed_issue = { STYLE("bold") }{ $actor }{ STYLE("reset") } 关闭了问题 { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
-msg-activity-reopened_issue = { STYLE("bold") }{ $actor }{ STYLE("reset") } 重新开启了问题 { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
+msg-activity-commented_issue = { STYLE("bold") }{ $actor }{ STYLE("reset") } 评论了议题 { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
+msg-activity-merged_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } 合并了合并请求 { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
+msg-activity-closed_issue = { STYLE("bold") }{ $actor }{ STYLE("reset") } 关闭了议题 { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
+msg-activity-reopened_issue = { STYLE("bold") }{ $actor }{ STYLE("reset") } 重新开启了议题 { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
 msg-activity-closed_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } 关闭了 PR { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
 msg-activity-reopened_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } 重新开启了 PR { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
 msg-activity-deleted_tag = { STYLE("bold") }{ $actor }{ STYLE("reset") } 从 { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") } 删除了标签 { STYLE("bold", "bright-cyan") }{ $tag_name }{ STYLE("reset") }
 msg-activity-deleted_branch = { STYLE("bold") }{ $actor }{ STYLE("reset") } 从 { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") } 删除了分支 { STYLE("bold", "bright-cyan") }{ $branch }{ STYLE("reset") }
 msg-activity-approved_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } 已批准 { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
 msg-activity-rejected_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } 对 { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") } 提出了更改建议
-msg-activity-commented_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } 评论了拉取请求 { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
+msg-activity-commented_pr = { STYLE("bold") }{ $actor }{ STYLE("reset") } 评论了合并请求 { STYLE("bold", "yellow") }{ $repo_name }#{ $number }{ STYLE("reset") }
 msg-activity-created_release = { STYLE("bold") }{ $actor }{ STYLE("reset") } 在 { STYLE("bold", "yellow") }{ $repo_name }{ STYLE("reset") } 上创建了版本发布 { STYLE("bold", "bright-cyan") }{ $release_name }{ STYLE("reset") }
 msg-user-edit-name-removal_hint = 使用 --unset 从您的个人资料中移除姓名
 msg-user-edit-pronouns-removal_hint = 使用 --unset 从您的个人资料中移除代词
@@ -882,38 +872,38 @@ help-cmd-issue-close = 关闭议题
 help-arg-issue-close-issue = 要关闭的议题
 help-arg-issue-close-with_msg = 关闭前要在议题上留下的评论
 help-cmd-issue-browse = 在浏览器中打开议题
-help-cmd-pr-view = 查看拉取请求的内容
-help-arg-pr-view-id = 要查看的拉取请求
-help-cmd-pr-view-body = 查看拉取请求的标题和正文
-help-cmd-pr-view-comment = 查看拉取请求上的评论
+help-cmd-pr-view = 查看合并请求的内容
+help-arg-pr-view-id = 要查看的合并请求
+help-cmd-pr-view-body = 查看合并请求的标题和正文
+help-cmd-pr-view-comment = 查看合并请求上的评论
 help-arg-pr-view-comment-idx = 要查看的评论索引，从 0 开始
-help-cmd-pr-view-comments = 查看拉取请求上的所有评论
-help-cmd-pr-view-labels = 查看应用于拉取请求的标签
-help-cmd-pr-view-diff = 查看拉取请求的基础分支和头部分支之间的差异
+help-cmd-pr-view-comments = 查看合并请求上的所有评论
+help-cmd-pr-view-labels = 查看应用于合并请求的标签
+help-cmd-pr-view-diff = 查看合并请求的基础分支和头部分支之间的差异
 help-arg-pr-view-diff-patch = 以补丁格式获取差异
 help-arg-pr-view-diff-editor = 在文本编辑器中查看差异
-help-cmd-pr-view-files = 查看拉取请求中更改的文件
-help-cmd-pr-view-commits = 查看拉取请求中的提交
+help-cmd-pr-view-files = 查看合并请求中更改的文件
+help-cmd-pr-view-commits = 查看合并请求中的提交
 help-arg-pr-view-commits-oneline = 每行显示一个提交
-help-cmd-pr-status = 查看拉取请求的可合并性和 CI 状态
-help-arg-pr-status-id = 要查看的拉取请求
-help-arg-pr-status-wait = 等待所有检查完成后退出
-help-cmd-pr-review = 管理拉取请求上的审查
-help-arg-pr-review-id = 要操作的拉取请求
-help-cmd-pr-review-list = 列出拉取请求上的审查
-help-arg-pr-review-list-comments = 列出拉取请求审查中的内联评论
-help-arg-pr-review-list-all = 包含所有审查，包括过时的和已驳回的
-help-cmd-pr-create = 创建新的拉取请求
+help-cmd-pr-status = 查看合并请求的可合并性和 CI 状态
+help-arg-pr-status-id = 要查看的合并请求
+help-arg-pr-status-wait = 等待所有检测完成后退出
+help-cmd-pr-review = 管理合并请求上的评审
+help-arg-pr-review-id = 要操作的合并请求
+help-cmd-pr-review-list = 列出合并请求上的评审
+help-arg-pr-review-list-comments = 列出合并请求评审中的内联评论
+help-arg-pr-review-list-all = 包含所有评审，包括陈旧的和已驳回的
+help-cmd-pr-create = 创建新的合并请求
 help-arg-pr-create-base = 要合并到的分支
 help-arg-pr-create-head = 要拉取更改的分支
-help-arg-pr-create-title = 新拉取请求的标题
+help-arg-pr-create-title = 新合并请求的标题
 help-arg-pr-create-title-long =
-    新拉取请求的标题
+    新合并请求的标题
 
     以 "WIP: " 为前缀将此 PR 标记为草稿。
-help-arg-pr-create-body = 拉取请求的正文
+help-arg-pr-create-body = 合并请求的正文
 help-arg-pr-create-body-long =
-    拉取请求的正文
+    合并请求的正文
 
     省略此项将打开编辑器，除非指定了 --body-file。
 help-arg-pr-create-body_file = 要从中读取的议题正文文件
@@ -923,21 +913,21 @@ help-arg-pr-create-autofill-long =
 
     如果只有一个提交，则 PR 将匹配其标题和内容。
     否则标题将为分支标题，内容将包含每个提交消息的列表。
-help-arg-pr-create-repo = 要创建此拉取请求的仓库
+help-arg-pr-create-repo = 要创建此合并请求的仓库
 help-arg-pr-create-web = 在浏览器中打开 PR 创建页面
 help-arg-pr-create-agit = 使用 AGit 工作流打开 PR
-help-cmd-pr-merge = 合并拉取请求
-help-arg-pr-merge-pr = 要合并的拉取请求
+help-cmd-pr-merge = 合并合并请求
+help-arg-pr-merge-pr = 要合并的合并请求
 help-arg-pr-merge-method = 要使用的合并方式
 help-arg-pr-merge-delete = 之后是否删除相应分支的选项
 help-arg-pr-merge-title = 要创建的合并或压缩提交的标题
 help-arg-pr-merge-message = 要创建的合并或压缩提交的正文
-help-cmd-pr-checkout = 在新分支中检出拉取请求
-help-arg-pr-checkout-pr = 要检出的拉取请求
+help-cmd-pr-checkout = 在新分支中检出合并请求
+help-arg-pr-checkout-pr = 要检出的合并请求
 help-arg-pr-checkout-pr-long =
-    要检出的拉取请求
+    要检出的合并请求
 
-    以 ^ 为前缀以获取来自父仓库的拉取请求。
+    以 ^ 为前缀以获取来自父仓库的合并请求。
 help-arg-pr-checkout-branch_name = 新创建分支的名称
 help-arg-pr-checkout-branch_name-long =
     新创建分支的名称
@@ -945,20 +935,20 @@ help-arg-pr-checkout-branch_name-long =
     默认为以主机 URL、仓库所有者和 PR 编号命名。
 help-arg-pr-checkout-ssh = 使用 SSH 而不是 HTTP(S) 拉取提交
 help-arg-pr-checkout-identity_file = 通过 SSH 克隆时要使用的 SSH 密钥文件
-help-cmd-pr-comment = 在拉取请求上添加评论
-help-arg-pr-comment-pr = 要评论的拉取请求
+help-cmd-pr-comment = 在合并请求上添加评论
+help-arg-pr-comment-pr = 要评论的合并请求
 help-arg-pr-comment-body = 评论的文本内容
 help-arg-pr-comment-body-long =
     评论的文本内容
 
     省略此项将打开编辑器，除非指定了 --body-file。
 help-arg-pr-comment-body_file = 从中读取评论文本内容的文件
-help-cmd-pr-assign = 将用户分配给拉取请求
+help-cmd-pr-assign = 将用户分配给合并请求
 help-arg-pr-assign-users = 要分配给此 PR 的用户名
-help-cmd-pr-unassign = 取消将用户分配给拉取请求
+help-cmd-pr-unassign = 取消将用户分配给合并请求
 help-arg-pr-unassign-users = 要从此 PR 取消分配的用户名
-help-cmd-pr-edit = 编辑拉取请求的内容
-help-arg-pr-edit-pr = 要编辑的拉取请求
+help-cmd-pr-edit = 编辑合并请求的内容
+help-arg-pr-edit-pr = 要编辑的合并请求
 help-cmd-pr-edit-title = 编辑标题
 help-arg-pr-edit-title-new_title = 新的 PR 标题
 help-arg-pr-edit-title-new_title-long =
@@ -981,16 +971,16 @@ help-arg-pr-edit-comment-new_body-long =
 help-cmd-pr-edit-labels = 编辑应用的标签
 help-arg-pr-edit-labels-add = 要添加的标签
 help-arg-pr-edit-labels-rm = 要移除的标签
-help-cmd-pr-close = 关闭拉取请求，不合并
-help-arg-pr-close-pr = 要关闭的拉取请求
+help-cmd-pr-close = 关闭合并请求，不合并
+help-arg-pr-close-pr = 要关闭的合并请求
 help-arg-pr-close-with_msg = 关闭前要添加的评论
 help-arg-pr-close-with_msg-long =
     关闭前要添加的评论
 
     不提供参数将打开编辑器
-help-cmd-pr-browse = 在浏览器中打开拉取请求
-help-arg-pr-browse-id = 要在浏览器中打开的拉取请求
-help-cmd-pr-search = 搜索仓库的拉取请求
+help-cmd-pr-browse = 在浏览器中打开合并请求
+help-arg-pr-browse-id = 要在浏览器中打开的合并请求
+help-cmd-pr-search = 搜索仓库的合并请求
 help-arg-pr-search-state = 按状态筛选 PR。默认：open
 help-arg-pr-search-repo = 要搜索的仓库
 help-cmd-repo-create = 创建新仓库
@@ -1001,7 +991,7 @@ help-arg-repo-create-push-long =
 
     隐含 `--remote=origin`（手动设置远程将覆盖此项）
 help-arg-repo-create-ssh = 为新远程仓库使用 SSH 而不是 HTTP(S)
-help-cmd-repo-fork = 将仓库复刻到您的账号
+help-cmd-repo-fork = 将仓库分叉到您的账号
 help-cmd-repo-migrate = 迁移或镜像现有仓库
 help-arg-repo-migrate-repo = 要迁移的仓库 URL
 help-arg-repo-migrate-name = 新镜像的名称，以及可选的所属组织或用户
@@ -1032,8 +1022,8 @@ help-cmd-repo-readme = 查看仓库的 README
 help-cmd-repo-clone = 在本地克隆仓库代码
 help-arg-repo-clone-ssh = 通过 SSH 而不是 HTTP(S) 克隆仓库
 help-arg-repo-clone-identity_file = 通过 SSH 克隆时要使用的 SSH 密钥文件
-help-cmd-repo-star = 为仓库添加星标
-help-cmd-repo-unstar = 取消仓库的星标
+help-cmd-repo-star = 为仓库点赞
+help-cmd-repo-unstar = 取消仓库的点赞
 help-cmd-repo-delete = 删除仓库
 help-cmd-repo-delete-long =
     删除仓库
@@ -1071,8 +1061,8 @@ help-arg-repo-edit-website = 为此仓库的网站设置 URL
 help-cmd-repo-units = 管理仓库的单元
 help-cmd-repo-units-issues = 管理议题单元
 help-arg-repo-units-issues-enable = 启用或禁用议题
-help-cmd-repo-units-prs = 管理拉取请求单元
-help-arg-repo-units-prs-enable = 启用或禁用拉取请求
+help-cmd-repo-units-prs = 管理合并请求单元
+help-arg-repo-units-prs-enable = 启用或禁用合并请求
 help-arg-repo-units-prs-allow_fast_forward_only_merge = 允许仅快进合并
 help-arg-repo-units-prs-allow_manual_merge = 允许手动合并
 help-arg-repo-units-prs-allow_merge_commits = 允许合并提交
@@ -1143,7 +1133,7 @@ help-arg-user-repos-user-long =
     要列出其仓库的用户名称
 
     省略以查看您自己的仓库。
-help-arg-user-repos-starred = 列出标星仓库而非拥有的仓库
+help-arg-user-repos-starred = 列出已点赞仓库而非拥有的仓库
 help-arg-user-repos-sort = 列表的排序方式
 help-arg-user-repos-page = 要获取的仓库页码
 help-cmd-user-orgs = 列出用户所属的组织
@@ -1258,3 +1248,96 @@ help-cmd-tag-view = 查看标签信息
 help-arg-version-check = 检查更新
 help-arg-wiki-clone-ssh = 通过 SSH 而不是 HTTP(S) 克隆仓库
 help-arg-wiki-clone-identity_file = 通过 SSH 克隆时要使用的 SSH 密钥文件
+-bullet =
+    { IS_MINIMAL() ->
+        [yes] -
+       *[no] •
+    }
+msg-repo_not_found = 找不到指定的仓库
+help-cmd-issue-view-assignees = 列出分配给此议题的用户
+msg-view-assignees-header = 分配给（{ $count } 名用户）：
+msg-view-assignees-entry =
+    { OPT($full_name) ->
+       *[none] { -bullet } { $login }
+        [some] { -bullet } { $full_name } { STYLE("dark-grey") }({ $login }){ STYLE("reset") }
+    }
+msg-view-assignees-empty = 没有人被分配。
+help-cmd-issue-depend = 管理此议题所依赖的议题
+help-cmd-issue-block = 管理此议题阻止的议题
+help-cmd-depend-add = 添加一个或多个依赖
+help-cmd-depend-remove = 移除一个或多个依赖
+help-cmd-depend-list = 列出依赖
+help-cmd-block-add = 添加一个或多个阻止关系
+help-cmd-block-remove = 移除一个或多个阻止关系
+help-cmd-block-list = 列出阻止项
+help-arg-depend-add-target = 要作为依赖添加的一个或多个议题
+help-arg-depend-remove-target = 要从依赖中移除的一个或多个议题
+help-arg-block-remove-target = 要取消阻止的一个或多个议题
+help-arg-issue-depend-add-issue = 要操作的议题
+help-arg-issue-depend-remove-issue = 要操作的议题
+help-arg-issue-depend-list-issue = 要列出其依赖的议题
+help-arg-issue-block-add-issue = 要操作的议题
+help-arg-issue-block-add-target = 此议题应阻止的一个或多个议题
+help-arg-issue-block-remove-issue = 要操作的议题
+help-arg-issue-block-list-issue = 要列出其阻止项的议题
+msg-issue-depend-add-success = 已向 #{ $issue } 添加 { $count } 个依赖
+msg-issue-depend-remove-success = 已从 #{ $issue } 移除 { $count } 个依赖
+msg-issue-block-add-success = 已从 #{ $issue } 添加 { $count } 个阻止关系
+msg-issue-block-remove-success = 已从 #{ $issue } 移除 { $count } 个阻止关系
+msg-issue-dep-target-required = 至少需要一个目标议题
+msg-issue-depend-no_repo_info = 无法确定要访问哪个仓库，请尝试在议题或目标参数中通过 `{{ owner }}/{{ repo }}#{{ number }}` 指定
+msg-pr-depend-no_repo_info = 无法确定要访问哪个仓库，请尝试使用 `--repo` 指定
+msg-issue-depend-list-empty = 没有依赖。
+msg-issue-block-list-empty = 没有阻止项。
+msg-issue-depend-list-header = { STYLE("bold") }{ $owner }/{ $repo } 的依赖{ STYLE("reset") } { -dash } #{ $number }
+msg-issue-block-list-header = { STYLE("bold") }被 { $owner }/{ $repo } 阻止的议题{ STYLE("reset") } { -dash } #{ $number }
+msg-issue-dep-list-entry =
+    { "  " }#{ $number } { STYLE("bold") }{ $title }{ STYLE("reset") } ({ $state ->
+        [closed] 已关闭
+        [merged] 已合并
+        [draft] 草稿
+       *[open] 打开
+    })
+help-cmd-pr-view-assignees = 列出分配给此合并请求的用户
+help-cmd-pr-depend = 管理此合并请求所依赖的议题
+help-cmd-pr-block = 管理此合并请求阻止的议题
+help-arg-pr-depend-add-pr = 要操作的合并请求
+help-arg-pr-depend-remove-pr = 要操作的合并请求
+help-arg-pr-depend-list-pr = 要列出其依赖的合并请求
+help-arg-pr-block-add-pr = 要操作的合并请求
+help-arg-pr-block-add-target = 此合并请求应阻止的一个或多个议题
+help-arg-pr-block-remove-pr = 要操作的合并请求
+help-arg-pr-block-list-pr = 要列出其阻止项的合并请求
+help-cmd-repo-star_status = 检查您当前的点赞状态
+help-arg-repo-star_status-list = 列出所有已点赞的仓库，而不是检查状态
+msg-repo-star-already_starred = 您已为此仓库点赞
+msg-repo-unstar-already_unstarred = 您尚未为此仓库点赞
+msg-repo-star_status-starred = 您已点赞 { $owner }/{ $repo }
+msg-repo-star_status-unstarred = 您尚未点赞 { $owner }/{ $repo }
+msg-repo-star_status-list-header = 您点赞了 { $count } 个仓库
+msg-repo-star_status-list-repo = 已点赞 { $owner }/{ $repo }
+help-arg-repo-edit-avatar = 要设置为仓库头像的图片路径
+help-arg-repo-edit-unset_avatar = 移除仓库当前设置的头像
+msg-repo-edit-avatar_file_not_found = { $path } 不存在。
+msg-auth-login-oauth-login-open-fail = 由于错误，无法处理 OAuth 登录
+msg-repo-watch-success = 您现在正在关注 { $owner }/{ $repo }
+msg-repo-watch-already_subscribed = 您已关注此仓库
+msg-repo-unwatch-already_unsubscribed = 您尚未关注此仓库
+msg-repo-unwatch-success = 您不再关注 { $owner }/{ $repo }
+msg-repo-watch_status-subscribed = 您已订阅 { $owner }/{ $repo }
+msg-repo-watch_status-unsubscribed = 您尚未订阅 { $owner }/{ $repo }
+msg-repo-watch_status-list-header = 您已订阅 { $count } 个仓库
+msg-repo-watch_status-list-repo = 已订阅 { $owner }/{ $repo }
+help-cmd-repo-watch = 订阅一个仓库
+help-cmd-repo-unwatch = 取消订阅一个仓库
+help-cmd-repo-watch_status = 检查您当前的关注状态
+help-arg-repo-watch_status-list = 列出所有已关注的仓库，而不是检查状态
+help-arg-cwd = 将工作目录设置为 <CWD>
+msg-project-dir-not-found = 找不到 fj 的项目目录
+msg-old-key-file-read =
+    注意：正在从旧位置的密钥文件中读取。
+        该位置已弃用。密钥文件将保存到新位置。
+msg-key-file-not-found = 找不到密钥文件。正在创建新文件。
+msg-save-migrated-key-file-fail =
+    { STYLE("bold", "yellow") }无法将密钥文件迁移到新位置！
+    请确保 fj 可以写入 { $path }。旧文件未被修改。{ STYLE("reset") }

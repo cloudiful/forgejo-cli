@@ -221,11 +221,6 @@ msg-issue-view-comment_count =
         [one] 1 komentarz
        *[other] { $comments } komentarzy
     }
-msg-issue-search-total =
-    { $issues ->
-        [one] 1 zgłoszenie
-       *[other] { $issues } zgłoszeń
-    }
 msg-issue-templates-blank_allowed = Dozwolone używanie flagi '--no-template'
 msg-issue-templates-blank_not_allowed = Niedozwolone używanie flagi '--no-template'
 msg-issue-view-comments-comment_header =
