@@ -219,6 +219,7 @@ pub enum MergeMethod {
     RebaseMerge,
     Squash,
     Manual,
+    FastForwardOnly,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -257,6 +258,7 @@ impl From<MergeMethod> for forgejo_api::structs::MergePullRequestOptionDo {
             MergeMethod::RebaseMerge => RebaseMerge,
             MergeMethod::Squash => Squash,
             MergeMethod::Manual => ManuallyMerged,
+            MergeMethod::FastForwardOnly => FastForwardOnly,
         }
     }
 }
