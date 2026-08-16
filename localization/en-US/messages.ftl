@@ -19,11 +19,11 @@ msg-whoami = currently signed into {$name}@{$host}
 help-cmd-auth-login = Log in to an instance
 help-cmd-auth-login-long =
     Log in to an instance
-    
+
     Opens an auth page in your browser
-msg-auth-login-oauth_unsupported = 
+msg-auth-login-oauth_unsupported =
   Your installation of fj doesn't support `login` for {$host_domain}
-  
+
   Please visit {$applications_url}
   to create a token, and use it to log in with `fj auth add-key`
 msg-auth-login-canceled = Login canceled
@@ -44,10 +44,10 @@ msg-auth-use_ssh-already_disabled = already not using SSH for {$host} by default
 help-cmd-auth-add_token = Add an application token for an instance
 help-cmd-auth-add_token-long =
     Add an application token for an instance
-    
+
     Use this if `fj auth login` doesn't work.
 help-arg-auth-add_token-token = The key to add. If not present, the key will be read in from stdin
-msg-auth-add_token-prompt = new key: 
+msg-auth-add_token-prompt = new key:
 msg-auth-add_token-already_exists = key for {$host} already exists
 
 help-cmd-auth-list = List all instances you're currently logged into
@@ -119,25 +119,25 @@ msg-org-view-team_count = {$team_count ->
     }
 
 help-arg-org-options-full_name = The display name for the organization
-help-arg-org-options-full_name-long = 
+help-arg-org-options-full_name-long =
     The display name for the organization
-    
+
     This doesn't have the restrictions the `name` argument does, and can contain any UTF-8 text.
 help-arg-org-options-description = The organization's description
 help-arg-org-options-email = Contact email for the organization
 help-arg-org-options-location = The organizations's location
 help-arg-org-options-website = The organization's website
 help-arg-org-options-visibility = The visibility of the organization
-help-arg-org-options-visibility-long = 
+help-arg-org-options-visibility-long =
     The visibility of the organization
-    
+
     Public organizations can be viewed by anyone, limited orgs can only be viewed by
     logged-in users, and private orgs can only be viewed by members of that org.
 help-arg-org-options-admin_can_change_team_access = Whether the admin of a repo can change org teams' access to it
 
 help-cmd-org-create = Create a new organization
 help-arg-org-create-name = The username for the organization
-help-arg-org-create-name-long = 
+help-arg-org-create-name-long =
     The username for the organization
 
     It can only have alphanumeric characters, dash, underscore, or period. It must start
@@ -145,10 +145,10 @@ help-arg-org-create-name-long =
     or periods.
 
     If you want a name that doesn't have these restrictions, see the `--full-name` option.
-msg-org-create-invalid_character = 
+msg-org-create-invalid_character =
     Organization names can only have alphanumeric characters, dashes, underscores, or periods.
       If you want a name with other characters, try setting the --full-name flag
-msg-org-create-invalid_starting_character = 
+msg-org-create-invalid_starting_character =
     Organization names can only start with alphanumeric characters.
       If you want a name that starts with other characters, try setting the --full-name flag
 msg-org-create-invalid_ending_character =
@@ -168,7 +168,7 @@ msg-org-create-success = created new {$visibility ->
 
 help-cmd-org-edit = Edit an organization's information
 help-arg-org-edit-name = The name of the organization to edit
-help-arg-org-edit-name-long = 
+help-arg-org-edit-name-long =
     The name of the organization to edit
 
     Note that this is the username, *not* the display name.
@@ -257,7 +257,7 @@ help-arg-org-team-options-description = A description of what the team does
 help-arg-org-team-options-read_permissions = A comma-separated list of read permissions to give this team
 help-arg-org-team-options-read_permissions-long =
     A comma-separated list of read permissions to give this team
-    
+
     List of permissions:
      - wiki
      - ext_wiki
@@ -269,12 +269,12 @@ help-arg-org-team-options-read_permissions-long =
      - code
      - releases
      - packages
-    
+
     Alternatively, you can use `all` to allow every read permission.
 help-arg-org-team-options-write_permissions = A comma-separated list of read+write permissions to give this team
 help-arg-org-team-options-write_permissions-long =
     A comma-separated list of read+write permissions to give this team
-    
+
     List of permissions:
      - wiki
      - ext_wiki
@@ -286,7 +286,7 @@ help-arg-org-team-options-write_permissions-long =
      - code
      - releases
      - packages
-    
+
     Alternatively, you can use `all` to allow every read+write permission
 
 help-cmd-org-team-create = Create a new team
@@ -314,7 +314,7 @@ help-arg-org-team-edit-admin = Give this team administrator abilities in the org
 help-cmd-org-team-delete = Delete a team from an organization
 help-cmd-org-team-delete-long =
     Delete a team from an organization
-    
+
     Note that this does NOT delete the repos the team has!
 help-arg-org-team-delete-org = The name of the organization the team is in
 help-arg-org-team-delete-name = The name of the team to delete
@@ -347,7 +347,7 @@ msg-org-team-repo-add-success =
 help-cmd-org-team-repo-rm = Remove access to a repo from a team
 help-cmd-org-team-repo-rm-long =
     Remove access to a repo from a team
-    
+
     Note that this does NOT delete the repository!
 help-arg-org-team-repo-rm-org = The name of the organization the team is in
 help-arg-org-team-repo-rm-team = The name of the team to remove the repo from
@@ -390,7 +390,7 @@ help-arg-issue-create-template-long =
 
     If the repo has disabled blank issues, this flag is required.
 help-arg-issue-create-no_template = Don't use a template for this issue
-help-arg-issue-create-no_template-long = 
+help-arg-issue-create-no_template-long =
     Don't use a template for this issue
 
     If the repo has disabled blank issues, this will fail.
@@ -410,7 +410,7 @@ msg-issue-create-success = created issue #{$number}: {$title}
 help-cmd-issue-view = View an issue's info
 help-arg-issue-view-issue = The issue to view
 help-cmd-issue-view-body = View an issue's title and body. The default
-msg-issue-view-header = 
+msg-issue-view-header =
     {STYLE("yellow")}{$title} {STYLE("dark-grey")}#{$number}{STYLE("reset")}"
     By {STYLE("white")}{$author}{STYLE("reset")} {-dash} {$state ->
         [open] {STYLE("bright-green")}Open{STYLE("reset")}
@@ -488,7 +488,7 @@ help-cmd-issue-edit-milestone = Edit an issue's milestone
 help-cmd-issue-comment = Add a comment on an issue
 help-arg-issue-comment-issue = The issue to comment on
 help-arg-issue-comment-body = The text content of the comment
-help-arg-issue-comment-body-long = 
+help-arg-issue-comment-body-long =
     The text content of the comment
 
     Leaving this out will open your editor, unless --body-file is specified.
@@ -699,18 +699,18 @@ help-cmd-pr-create = Create a new pull request
 help-arg-pr-create-base = The branch to merge onto
 help-arg-pr-create-head = The branch to pull changes from
 help-arg-pr-create-title = What to name the new pull request
-help-arg-pr-create-title-long = 
+help-arg-pr-create-title-long =
     What to name the new pull request
 
     Prefix with "WIP: " to mark this PR as a draft.
 help-arg-pr-create-body = The text body of the pull request
-help-arg-pr-create-body-long = 
+help-arg-pr-create-body-long =
     The text body of the pull request
 
     Leaving this out will open your editor, unless --body-file is specified.
 help-arg-pr-create-body_file = The text body of the issue, to read from a file
 help-arg-pr-create-autofill = Automatically populate the PR's title and body from its commits
-help-arg-pr-create-autofill-long = 
+help-arg-pr-create-autofill-long =
     Automatically populate the PR's title and body from its commits
 
     If there's a single commit, the PR will match its title and contents.
@@ -726,7 +726,7 @@ msg-pr-create-agit_success = created pull request: {$title}
 msg-pr-create-agit_push_cfg_question =
     Would you like to set the needed git config
     items so that `git push` works for this pr?
-msg-pr-create-agit_push_cfg_prompt = (y/N/?) 
+msg-pr-create-agit_push_cfg_prompt = (y/N/?)
     .yes =
         Yes
         yes
@@ -763,12 +763,12 @@ msg-pr-merge-success = Merged PR #{$number} \"{$title}\" into `{$base_branch}`
 
 help-cmd-pr-checkout = Checkout a pull request in a new branch
 help-arg-pr-checkout-pr = The pull request to check out
-help-arg-pr-checkout-pr-long = 
+help-arg-pr-checkout-pr-long =
     The pull request to check out
 
     Prefix with ^ to get a pull request from the parent repo.
 help-arg-pr-checkout-branch_name = The name to give the newly created branch
-help-arg-pr-checkout-branch_name-long = 
+help-arg-pr-checkout-branch_name-long =
     The name to give the newly created branch
 
     Defaults to naming after the host url, repo owner, and PR number.
@@ -785,7 +785,7 @@ msg-pr-checkout-success = Checked out PR #{$number}: {$title}
 help-cmd-pr-comment = Add a comment on a pull request
 help-arg-pr-comment-pr = The pull request to comment on
 help-arg-pr-comment-body = The text content of the comment
-help-arg-pr-comment-body-long = 
+help-arg-pr-comment-body-long =
     The text content of the comment
 
     Leaving this out will open your editor, unless --body-file is specified.
@@ -928,9 +928,9 @@ help-arg-repo-migrate-login-long =
 
     This is not recommended, `--token` should be used instead whenever possible.
 msg-repo-migrate-git_only = Migrating from a `git` service doesn't support migration items other than LFS. Please specify a different service or remove the included items
-msg-repo-migrate-username_prompt = Username: 
-msg-repo-migrate-password_prompt = Password: 
-msg-repo-migrate-token_prompt = Token: 
+msg-repo-migrate-username_prompt = Username:
+msg-repo-migrate-password_prompt = Password:
+msg-repo-migrate-token_prompt = Token:
 msg-repo-migrate-migrating = Migrating...
 msg-repo-migrate-success = Done! View online at {$url}
 
@@ -981,7 +981,7 @@ msg-repo-star-success = Starred {$owner}/{$repo}!
 help-cmd-repo-unstar = Take away a star from a repo
 msg-repo-unstar-success = Removed star from {$owner}/{$repo}!
 
-help-cmd-repo-star_status = Check your current starring status 
+help-cmd-repo-star_status = Check your current starring status
 help-arg-repo-star_status-list = List all starred repos instead of checking status
 msg-repo-star-already_starred = You already starred this repo
 msg-repo-unstar-already_unstarred = You already don't star this repo
@@ -998,7 +998,7 @@ help-cmd-repo-delete-long =
     Delete a repository
 
     This cannot be undone!
-msg-repo-delete-confirmation_prompt = Are you sure you want to delete {$owner}/{$name}? (y/N) 
+msg-repo-delete-confirmation_prompt = Are you sure you want to delete {$owner}/{$name}? (y/N)
     .yes =
         Yes
         yes
@@ -1084,7 +1084,7 @@ help-cmd-repo-units-wiki = Manage the wiki unit
 help-arg-repo-units-wiki-enable = Enable or disable the wiki
 help-arg-repo-units-wiki-branch = Set the branch used for the wiki
 help-arg-repo-units-wiki-external_url = Set the URL for an external wiki
-help-arg-repo-units-wiki-external_url-long = 
+help-arg-repo-units-wiki-external_url-long =
     Set the URL for an external wiki
 
     If no URL is given, the external wiki is instead disabled.
@@ -1208,7 +1208,7 @@ msg-user-repos-list_footer =
 
 help-cmd-user-orgs = List the organizations a user is a member of
 help-arg-user-orgs-user = The name of the user to view org membership of
-help-arg-user-orgs-user-long = 
+help-arg-user-orgs-user-long =
     The name of the user to view org membership of
 
     Omit to view your own orgs.
@@ -1221,7 +1221,7 @@ msg-user-orgs-count = {$organizations ->
 
 help-cmd-user-activity = List a user's recent activity
 help-arg-user-activity-user = The name of the user to view the activity of
-help-arg-user-activity-user-long = 
+help-arg-user-activity-user-long =
     The name of the user to view the activity of
 
     Omit to view your own activity.
@@ -1323,10 +1323,10 @@ msg-user-key-upload-confirm_key_file_prompt =
 msg-user-key-upload-title_unconfirmed = Title was not confirmed
 msg-user-key-upload-file_unconfirmed = File path was not confirmed
 msg-user-key-add-file_unconfirmed = User didn't confirm guessed key file.
-msg-user-key-add-unexpected_extension = 
+msg-user-key-add-unexpected_extension =
     '{$path}' doesn't end in '.pub'. Are you sure this isn't a private key?
      If you want to proceed anyways, add --force.
-msg-user-key-add-invalid_key = 
+msg-user-key-add-invalid_key =
     '{$path}' looks like a private key or invalid data!
      If you want to proceed anyways, add --force.
 msg-user-key-add-no_title = Couldn't guess key title, please provide one explicitly and check your key file.
@@ -1393,7 +1393,7 @@ msg-user-gpg-upload-export_failed = Failed to export key. {OPT($status_code) ->
 msg-user-gpg-upload-success = Key successfully added!
 
 help-cmd-user-gpg-verify = Verifies a GPG key
-help-cmd-user-gpg-verify-long = 
+help-cmd-user-gpg-verify-long =
     Verifies a GPG key
 
     You need to have the to-be-verified key installed locally in order to
@@ -1446,7 +1446,7 @@ help-arg-release-create-body-long =
 
     Using this flag without an argument will open your editor.
 msg-release-create-must_specify_tag = must select tag with `--tag` or `--create-tag`
-msg-release-create-tag_flags_conflict =`--tag` and `--create-tag` are mutually exclusive; please pick just one 
+msg-release-create-tag_flags_conflict =`--tag` and `--create-tag` are mutually exclusive; please pick just one
 msg-release-create-success = Created release {$name}
 
 help-cmd-release-edit = Edit a release's info
@@ -1546,7 +1546,7 @@ msg-old-key-file-read =
     Note: Reading from the keys file in the old location.
         That location is deprecated. The keys file will be saved to the new location.
 msg-key-file-not-found = Could not find keys file. Creating a new file.
-msg-save-migrated-key-file-fail = 
+msg-save-migrated-key-file-fail =
     {STYLE("bold", "yellow")}Could not migrate key file to the new location!
     Please ensure, fj can write to {$path}. The old file has not been modified.{STYLE("reset")}
 
