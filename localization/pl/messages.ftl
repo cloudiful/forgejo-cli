@@ -29,7 +29,7 @@ msg-actions-dispatch-success =
         [one] 1 wejścia
        *[other] { $n_inputs } wejść
     }.
-msg-auth-use_ssh-not-logged-in = nie jesteś zalogowany do { $host }
+msg-auth-use_ssh-not_logged_in = nie jesteś zalogowany do { $host }
 -dash =
     { IS_MINIMAL() ->
         [yes] -

@@ -35,7 +35,7 @@ msg-auth_logout-success = signed out of {$host}
 msg-auth_logout-already_signed_out = already not signed in to {$host}
 
 help-cmd-auth-use_ssh = Enable or disable using SSH by default for certain instances
-msg-auth-use_ssh-not-logged-in = not logged in to {$host}
+msg-auth-use_ssh-not_logged_in = not logged in to {$host}
 msg-auth-use_ssh-enabled = now will use SSH for {$host} by default
 msg-auth-use_ssh-disabled = will no longer use SSH for {$host} by default
 msg-auth-use_ssh-already_enabled = already using SSH for {$host} by default
