@@ -753,3 +753,79 @@ help-arg-org-team-options-read_permissions-long =
 
     Alternativ kannst du `all` benutzen, um jede Leseberechtigung zu erteilen.
 help-arg-org-team-options-write_permissions = Eine durch Kommata getrennte Liste von Lese- und Schreibberechtigungen, die diesem Team erteilt werden sollen
+help-arg-org-team-options-write_permissions-long =
+    Eine durch Kommata getrennte Liste von Lese-und-Schreibberechtigungen, die diesem Team erteilt werden sollen
+
+    Liste der Berechtigungen:
+     - wiki
+     - ext_wiki
+     - issues
+     - ext_issues
+     - pulls
+     - projects
+     - actions
+     - code
+     - releases
+     - packages
+
+    Alternativ kannst du `all` verwenden, um jede Lese-und-Schreibberechtigung zu gewähren.
+help-cmd-org-team-create = Neues Team erstellen
+help-arg-org-team-create-org = Der Name der Organisation, in der das Team erstellt werden soll
+help-arg-org-team-create-name = Der Name des neuen Teams
+help-arg-org-team-create-name-long =
+    Der Name des neuen Teams
+
+    Dieser darf nur alphanumerische Zeichen enthalten
+help-arg-org-team-create-can_create_repos = Mitgliedern dieses Teams erlauben, Repos in der Organisation zu erstellen
+help-arg-org-team-create-include_all_repos = Diesem Team Zugriff auf jedes Repo gewähren
+help-arg-org-team-create-admin = Diesem Team Administratorrechte in der Organisation gewähren
+help-cmd-org-team-edit = Die Informationen und Berechtigungen eines Teams bearbeiten
+help-arg-org-team-edit-org = Der Name der Organisation, zu der das Team gehört
+help-arg-org-team-edit-name = Der Name des zu bearbeitenden Teams
+help-arg-org-team-edit-can_create_repos = Mitgliedern dieses Teams erlauben, Repos in der Organisation zu erstellen
+help-arg-org-team-edit-include_all_repos = Diesem Team Zugriff auf jedes Repo gewähren
+help-arg-org-team-edit-admin = Diesem Team Administratorrechte in der Organisation erteilen
+help-cmd-org-team-delete = Ein Team aus einer Organisation löschen
+help-cmd-org-team-delete-long =
+    Ein Team aus einer Organisation löschen
+
+    Beachte, dass dadurch die Repos des Teams NICHT gelöscht werden!
+help-arg-org-team-delete-org = Der Name der Organisation, zu der das Team gehört
+help-arg-org-team-delete-name = Der Name des zu löschenden Teams
+help-cmd-org-team-repo-list = Alle Repos auflisten, auf die dieses Team Zugriff hat
+help-arg-org-team-repo-list-org = Der Name der Organisation, zu der das Team gehört
+help-arg-org-team-repo-list-team = Der Name des Teams, dessen Repos angezeigt werden sollen
+help-arg-org-team-repo-list-page = Welche Seite der Ergebnisse angezeigt werden soll
+help-cmd-org-team-repo-add = Einem Team Zugriff auf ein existierendes Repo gewähren
+help-arg-org-team-repo-add-org = Der Name der Organisation, zu der das Team gehört
+help-arg-org-team-repo-add-team = Der Name des Teams, zu dem ein Repo hinzugefügt werden soll
+help-arg-org-team-repo-add-repo = Der Name des Repos, das zum Team hinzugefügt werden soll
+help-cmd-org-team-repo-rm = Einem Team den Zugriff auf ein Repo entziehen
+help-cmd-org-team-repo-rm-long =
+    Einem Team den Zugriff auf ein Repo entziehen
+
+    Beachte, dass das Repo dadurch NICHT gelöscht wird!
+help-arg-org-team-repo-rm-org = Der Name der Organisation, zu der das Team gehört
+help-arg-org-team-repo-rm-team = Der Name des Teams, aus dem das Repo entfernt werden soll
+help-arg-org-team-repo-rm-repo = Der Name des Repos, das aus dem Team entfernt werden soll
+help-cmd-org-team-member-list = Alle Mitglieder eines Teams auflisten
+help-arg-org-team-member-list-org = Der Name der Organisation, zu der das Team gehört
+help-arg-org-team-member-list-team = Der Name des Teams, dessen Mitglieder angezeigt werden sollen
+help-arg-org-team-member-list-page = Welche Seite der Ergebnisse angezeigt weden soll
+help-cmd-org-team-member-add = Jemanden zu einem Team hinzufügen
+help-arg-org-team-member-add-org = Der Name der Organisation, zu der das Team gehört
+help-arg-org-team-member-add-team = Der Name des Teams, zu dem ein Benutzer hinzugefügt werden soll
+help-arg-org-team-member-add-user = Der Name des Benutzers, der dem Team hinzugefügt werden soll
+help-cmd-org-team-member-rm = Jemanden aus einem Team entfernen
+help-arg-org-team-member-rm-org = Der Name der Organisation, zu der das Team gehört
+help-arg-org-team-member-rm-team = Der Name des Teams, aus dem der Benutzer entfernt werden soll
+help-arg-org-team-member-rm-user = Der Name des Benutzers, der aus dem Team entfernt werden soll
+help-cmd-issue-create = Ein neues Issue in einem Repo erstellen
+help-arg-issue-create-title = Titel des Issues
+help-arg-issue-create-body = Der Textkörper des Issues
+help-arg-issue-create-body-long =
+    Der Textkörper des Issues
+
+    Wenn du dies leer lässt, wird dein Textbearbeitungsprogramm geöffnet werden, es sei denn, --body-file ist angegeben.
+help-arg-issue-create-body_file = Die Datei, aus welcher der Textkörper des Issues gelesen werden soll
+help-arg-issue-create-template = Die beim Erstellen eines Issues zu verwendende Vorlage
