@@ -13,6 +13,7 @@ mod actions;
 mod auth;
 mod completion;
 mod issues;
+mod milestones;
 mod org;
 mod prs;
 mod release;
@@ -57,6 +58,7 @@ pub enum Command {
     Repo(repo::RepoCommand),
     Issue(issues::IssueCommand),
     Pr(prs::PrCommand),
+    Milestone(milestones::MilestoneCommand),
     Wiki(wiki::WikiCommand),
     Actions(actions::ActionsCommand),
     #[command(name = "whoami")]
@@ -77,6 +79,7 @@ impl Command {
             Command::Repo(subcommand) => subcommand.run(keys, host_name).await?,
             Command::Issue(subcommand) => subcommand.run(keys, host_name).await?,
             Command::Pr(subcommand) => subcommand.run(keys, host_name).await?,
+            Command::Milestone(subcommand) => subcommand.run(keys, host_name).await?,
             Command::Wiki(subcommand) => subcommand.run(keys, host_name).await?,
             Command::Actions(subcommand) => subcommand.run(keys, host_name).await?,
             Command::WhoAmI(command) => command.run(keys, host_name).await?,

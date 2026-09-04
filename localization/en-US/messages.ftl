@@ -394,6 +394,7 @@ help-arg-issue-create-no_template-long =
     Don't use a template for this issue
 
     If the repo has disabled blank issues, this will fail.
+help-arg-issue-create-milestone = Add this issue to the given milestone
 help-arg-issue-create-repo = The repo to create this issue on
 help-arg-issue-create-web = Open the issue creation page in your web browser
 msg-issue-create-no_templates = {$owner}/{$repo} does not have any issue templates
@@ -450,6 +451,7 @@ msg-issue-search-page-total = { $total_pages ->
            *[other] {$issues} issues
        })
     }
+help-arg-issue-search-milestones = Comma-separated list of milestones to filter by
 msg-issue-search-entry = #{$number}: {$title} (by {$author})
 
 help-cmd-issue-templates = List the issue templates in a repo
@@ -480,6 +482,8 @@ help-cmd-issue-edit-comment = Edit a comment on an issue
 help-cmd-issue-edit-labels = Edit an issue's labels
 help-arg-issue-edit-labels-add = The labels to add
 help-arg-issue-edit-labels-rm = The labels to remove
+
+help-cmd-issue-edit-milestone = Edit an issue's milestone
 
 help-cmd-issue-comment = Add a comment on an issue
 help-arg-issue-comment-issue = The issue to comment on
@@ -715,6 +719,7 @@ help-arg-pr-create-autofill-long =
 help-arg-pr-create-repo = The repo to create this pull request on
 help-arg-pr-create-web = Open the PR creation page in your web browser
 help-arg-pr-create-agit = Open the PR using AGit workflow
+help-arg-pr-create-milestone = Add this PR to the given milestone
 msg-pr-create-cross_instance = cannot create pull request across instances; base is on {$base_instance}, while head is tracking {$head_instance}
 msg-pr-create-success = created pull request #{$number}: {$title}
 msg-pr-create-agit_success = created pull request: {$title}
@@ -833,6 +838,8 @@ help-cmd-pr-edit-labels = Edit the applied labels
 help-arg-pr-edit-labels-add = The labels to add
 help-arg-pr-edit-labels-rm = The labels to remove
 
+help-cmd-pr-edit-milestone = Edit a PR's milestone
+
 help-cmd-pr-close = Close a pull request, without merging
 help-arg-pr-close-pr = The pull request to close
 help-arg-pr-close-with_msg = A comment to add before closing
@@ -848,6 +855,7 @@ help-cmd-pr-search = Search a repository's pull requests
 help-arg-pr-search-state = Filter PRs by state. Default: open
 help-arg-pr-search-repo = The repo to search in
 help-arg-pr-search-all = Display all pull requests
+help-arg-pr-search-milestones = Comma-separated list of milestones to filter by
 msg-pr-search-page-argument-error = expected a positive integer
 msg-pr-search-page-total = { $total_pages ->
         [one] {$pull_requests ->
@@ -1541,3 +1549,47 @@ msg-key-file-not-found = Could not find keys file. Creating a new file.
 msg-save-migrated-key-file-fail = 
     {STYLE("bold", "yellow")}Could not migrate key file to the new location!
     Please ensure, fj can write to {$path}. The old file has not been modified.{STYLE("reset")}
+
+help-cmd-milestone-search = Search for milestones
+help-arg-milestone-search-state = Filter milestones by state
+help-arg-milestone-search-title = Filter milestones by title
+help-cmd-milestone-create = Create a new milestone
+help-arg-milestone-create-title = Title of the milestone to create
+help-arg-milestone-create-description = Description of the milestone to create. Omit to invoke editor
+help-arg-milestone-create-state = State of the milestone to create
+help-cmd-milestone-view = View a milestone
+help-arg-milestone-view-title = Title or ID of the milestone to view
+help-cmd-milestone-edit = Edit a milestone
+help-arg-milestone-edit-title = Title of the milestone to edit
+help-arg-milestone-edit-description = New description for the milestone
+help-arg-milestone-edit-state = New state for the milestone
+help-arg-milestone-edit-new_title = New title for the milestone
+help-cmd-milestone-delete = Delete a milestone
+help-arg-milestone-delete-title = Title or ID of the milestone to delete
+
+msg-milestone-search-total = {$milestones ->
+        [one] 1 milestone
+       *[other] {$milestones} milestones
+    }
+msg-milestone-search-entry = {$title} { $state ->
+       *[open] ({STYLE("green")}open{STYLE("reset")})
+        [closed] ({STYLE("red")}closed{STYLE("reset")})
+    } {$open} open, {$closed} closed
+msg-milestone-view =
+    {STYLE("bold")}{$title}{STYLE("reset")} { $state ->
+       *[open] ({STYLE("green")}open{STYLE("reset")})
+        [closed] ({STYLE("red")}closed{STYLE("reset")})
+    }
+    {STYLE("bright-blue")}{$open} open, {$closed} closed{STYLE("reset")}
+    created {$created_at}, updated {$updated_at}
+    { OPT($due_on) ->
+        [none] no due date
+       *[some] due: {$due_on}
+    }{ OPT($description) ->
+        [none] {""}
+       *[some] {""}
+
+       {$description}
+    }
+msg-milestone-deleted = Milestone deleted
+msg-milestone-not_found = Could not find the specified milestone

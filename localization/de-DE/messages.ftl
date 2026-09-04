@@ -699,3 +699,47 @@ help-arg-org-activity-name = Der Name der Organisation, deren Aktivität angezei
 help-cmd-org-members = Liste Mitglieder einer Organisation auf
 help-arg-org-members-org = Der Name der Organisation, deren Mitglieder angezeigt werden sollen
 help-arg-org-members-page = Welche Seite der Ergebnisse angezeigt werden soll
+
+help-cmd-milestone-search = Suche Meilensteine
+help-arg-milestone-search-state = Filtern nach Zustand
+help-arg-milestone-search-title = Filtern nach Titel
+help-cmd-milestone-create = Erstelle einen neuen Meilenstein
+help-arg-milestone-create-title = Titel des zu erstellenden Meilensteins
+help-arg-milestone-create-description = Beschreibung des zu erstellenden Meilensteins. Lassen sie diese aus, um den Texteditor aufzurufen
+help-arg-milestone-create-state = Zustand des zu erstellenden Meilensteins
+help-cmd-milestone-view = Zeige einen Meilenstein an
+help-arg-milestone-view-title = Titel oder ID des anzuzeigenden Meilensteins
+help-cmd-milestone-edit = Bearbeite einen Meilenstein
+help-arg-milestone-edit-title = Titel des zu bearbeitenden Meilensteins
+help-arg-milestone-edit-description = Neue Beschreibung für den Meilenstein
+help-arg-milestone-edit-state = Neuer Zustand für den Meilenstein
+help-arg-milestone-edit-new_title = Neuer Titel für den Meilenstein
+help-cmd-milestone-delete = Lösche einen Meilenstein
+help-arg-milestone-delete-title = Titel oder ID des zu löschenden Meilensteins
+
+msg-milestone-search-total = {$milestones ->
+        [one] 1 Meilenstein
+       *[other] {$milestones} Meilensteine
+    }
+msg-milestone-search-entry = {$title} { $state ->
+       *[open] ({STYLE("green")}offen{STYLE("reset")})
+        [closed] ({STYLE("red")}geschlossen{STYLE("reset")})
+    } {$open} offen, {$closed} geschlossen
+msg-milestone-view =
+    {STYLE("bold")}{$title}{STYLE("reset")} { $state ->
+       *[open] ({STYLE("green")}offen{STYLE("reset")})
+        [closed] ({STYLE("red")}geschlossen{STYLE("reset")})
+    }
+    {STYLE("bright-blue")}{$open} offen, {$closed} geschlossen{STYLE("reset")}
+    erstellt am {$created_at}, aktualisiert am {$updated_at}
+    { OPT($due_on) ->
+        [none] kein Fälligkeitsdatum
+       *[some] fällig: {$due_on}
+    }{ OPT($description) ->
+        [none] {""}
+       *[some] {""}
+
+       {$description}
+    }
+msg-milestone-deleted = Meilenstein gelöscht
+msg-milestone-not_found = Der angegebene Meilenstein konnte nicht gefunden werden
