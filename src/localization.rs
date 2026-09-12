@@ -192,17 +192,21 @@ impl AsFluent for bool {
     }
 }
 
+pub fn fluent_var_name(name: &str) -> &str {
+    name.strip_prefix("r#").unwrap_or(name)
+}
+
 #[macro_export]
 macro_rules! ftl_arg {
     ($args:ident, $var_name:ident) => {
         $args.set(
-            stringify!($var_name),
+            $crate::localization::fluent_var_name(stringify!($var_name)),
             fluent_bundle::FluentValue::from($var_name),
         );
     };
     ($args:ident, $var_name:ident, $var_value:expr) => {
         $args.set(
-            stringify!($var_name),
+            $crate::localization::fluent_var_name(stringify!($var_name)),
             fluent_bundle::FluentValue::from($var_value),
         );
     };
@@ -468,4 +472,24 @@ macro_rules! lh {
     ($id:literal) => {
         $crate::ftl_format!(concat!("help-", $id, "-long"))
     };
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn raw_ident_arg_drops_prefix() {
+        let r#ref = "main";
+        let args = crate::ftl_args!(r#ref);
+        assert!(args.get("ref").is_some(), "`r#ref` should set `ref`");
+        assert!(args.get("r#ref").is_none(), "`r#` should not reach Fluent");
+    }
+
+    #[test]
+    fn dispatch_success_resolves_ref() {
+        let name = "deploy.yml";
+        let r#ref = "main";
+        let n_inputs = 1_usize;
+        let msg = crate::ftl_format!("msg-actions-dispatch-success", name, r#ref, n_inputs);
+        assert!(msg.contains("main"), "`$ref` left unresolved: {msg}");
+    }
 }
