@@ -1,6 +1,7 @@
 pub mod bundles {
     use fluent_bundle::{FluentResource, concurrent::FluentBundle};
     use fluent_datetime::BundleExt;
+    use std::io::IsTerminal;
     use std::sync::LazyLock;
     use std::sync::OnceLock;
     use unic_langid::langid;
@@ -18,6 +19,7 @@ pub mod bundles {
                 bundle.add_function("STYLE", style).unwrap();
                 bundle.add_function("IS_MINIMAL", is_minimal).unwrap();
                 bundle.add_function("OPT", opt).unwrap();
+                bundle.set_use_isolating(std::io::stdout().is_terminal());
                 // .ftl files are checked at compile time in `build.rs`
                 let resource = FluentResource::try_new(
                     include_str!(concat!("../localization/", $id, "/messages.ftl")).into(),
