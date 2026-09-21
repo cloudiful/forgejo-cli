@@ -158,6 +158,7 @@ pub async fn get_client_info_for(url: &url::Url) -> eyre::Result<Option<String>>
         "code.ffmpeg.org" => "75d19c4d-01d0-4825-8953-76ad66543f2c",
         "forge.fedoraproject.org" => "b15a2f44-75b0-4d2f-a740-50e45cc161a3",
         "codefloe.com" => "d8f0480c-cc0a-4cfc-8a16-4b88230d61d4",
+        "openlat.dev" => "4a69c5bc-64a0-482d-bd2f-7c1b1b3e0b6e",
         _ => return Ok(None),
     };
 
