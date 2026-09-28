@@ -1730,7 +1730,7 @@ async fn view_repo(api: &Forgejo, repo: &RepoName) -> eyre::Result<()> {
     }
     if repo.mirror == Some(true) {
         ftl_println!(
-            "msg-repo-view-is_fork",
+            "msg-repo-view-is_mirror",
             mirror_of = repo.original_url.as_ref().map(|url| url.as_str()),
         );
     };
