@@ -924,23 +924,11 @@ async fn get_pr_status(repo: &RepoName, api: &Forgejo, id: Option<i64>) -> eyre:
     if pr.merged.ok_or_eyre("pr merge status unknown")? {
         Ok(PrStatus::Merged { pr })
     } else {
-        let pr_number = pr.number.ok_or_eyre("pr does not have number")?;
-        let query = forgejo_api::structs::RepoGetPullRequestCommitsQuery {
-            verification: Some(false),
-            files: Some(false),
-        };
-        let commits = api
-            .repo_get_pull_request_commits(repo.owner(), repo.name(), pr_number, query)
-            .all()
-            .await?;
-        let latest_commit = commits
-            .iter()
-            .max_by_key(|x| x.created)
-            .ok_or_eyre("no commits in pr")?;
-        let sha = latest_commit
-            .sha
-            .as_deref()
-            .ok_or_eyre("commit does not have sha")?;
+        let sha = pr
+            .head
+            .as_ref()
+            .and_then(|head| head.sha.as_deref())
+            .ok_or_eyre("pr does not have head sha")?;
         let mut commit_statuses = api
             .repo_get_combined_status_by_ref(repo.owner(), repo.name(), sha)
             .stream_pages()
