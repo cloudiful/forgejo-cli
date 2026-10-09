@@ -8,7 +8,7 @@ msg-auth-login-oauth_unsupported =
     Diese Installation von fj unterstützt `login` für { $host_domain } nicht.
 
     Bitte besuchen Sie { $applications_url },
-    um einen Token zu erstellen und verwenden Sie diesen mit `fj auth add-key`, um sich anzumelden.
+    um einen Token zu erstellen, und verwenden Sie diesen mit `fj auth add-key`, um sich anzumelden.
 msg-auth-login-canceled = Anmeldung abgebrochen
 msg-auth-login-browser_success = Authentifiziert! Schließen Sie diesen Tab und gehen sie zurück zu Ihrem Terminal.
 msg-auth-login-browser_failure = Authentifikation fehlgeschlagen.
@@ -54,17 +54,17 @@ msg-org-view-team_count =
        *[other] { STYLE("bold") }{ $team_count }{ STYLE("reset") } Teams
     }
 msg-org-create-invalid_character =
-    Organisationsnamen können nur alphanumerische Zeichen, Striche, Unterstriche, oder Punkte enthalten.
-      Wenn Sie einen Namen mit anderen Zeichen verwenden möchten, versuchen Sie, die --full-name Flag zu setzen.
+    Organisationsnamen können nur alphanumerische Zeichen, Striche, Unterstriche oder Punkte enthalten.
+      Wenn Sie einen Namen mit anderen Zeichen verwenden möchten, versuchen Sie, die --full-name-Flag zu setzen.
 msg-org-create-invalid_starting_character =
     Organisationsnamen können nur mit alphanumerischen Zeichen anfangen.
-      Wenn Sie einen Namen, der mit anderen Zeichen anfängt, verwenden möchten, versuchen Sie, die --full-name Flag zu setzen.
+      Wenn Sie einen Namen, der mit anderen Zeichen anfängt, verwenden möchten, versuchen Sie, die --full-name-Flag zu setzen.
 msg-org-create-invalid_ending_character =
     Organisationsnamen können nur mit alphanumerischen Zeichen enden.
-      Wenn Sie einen Namen, der mit anderen Zeichen endet, verwenden möchten, versuchen Sie, die --full-name Flag zu setzen.
+      Wenn Sie einen Namen, der mit anderen Zeichen endet, verwenden möchten, versuchen Sie, die --full-name-Flag zu setzen.
 msg-org-create-invalid_consecutive_characters =
     Organisationsnamen können keine aufeinanderfolgenden nichtalphanumerischen Zeichen enthalten.
-      Wenn Sie dennoch einen solchen Namen verwenden möchten, versuchen Sie, die --full-name Flag zu setzen.
+      Wenn Sie dennoch einen solchen Namen verwenden möchten, versuchen Sie, die --full-name-Flag zu setzen.
 msg-org-create-success =
     Neue { $visibility ->
         [public] öffentliche
@@ -631,14 +631,14 @@ help-cmd-auth-login-long =
     Anmeldung auf einer Instanz
 
     Öffnet eine Anmeldeseite in ihrem Webbrowser
-help-cmd-auth-logout = Löscht die lokalen Login Daten zu einer Instanz
+help-cmd-auth-logout = Löscht die lokalen Anmeldedaten zu einer Instanz
 help-cmd-auth-use_ssh = (De-)aktiviert SSH als Standard für gegebene Instanzen
 help-cmd-auth-add_token = Fügt ein Anwendungstoken für eine Instanz hinzu
 help-cmd-auth-add_token-long =
     Fügt ein Anwendungstoken für eine Instanz hinzu
 
     Verwenden sie diese Option, wenn `fj auth login` nicht funktionieren sollte.
-help-arg-auth-add_token-token = Der Schlüssel, der hinzugefügt werden soll. Ist dieser nicht vorhanden wird er aus der Standardeingabe gelesen
+help-arg-auth-add_token-token = Der Schlüssel, der hinzugefügt werden soll. Ist dieser nicht vorhanden, wird er aus der Standardeingabe gelesen
 help-cmd-auth-list = Zählt alle Instanzen auf, auf denen sie aktuell angemeldet sind
 help-cmd-actions-variables-list = Zählt die Variablen auf
 help-arg-actions-variables-list-verbose = owner_id und repo_id werden ebenfalls ausgegeben
@@ -650,14 +650,14 @@ help-cmd-actions-variables-delete = Löscht eine Variable
 help-arg-actions-variables-delete-name = Die zu löschende Variable
 help-cmd-actions-dispatch = Stößt einen Workflow an
 help-arg-actions-dispatch-name = Name des Workflows, der angestoßen werden soll
-help-arg-actions-dispatch-ref = Git Revision, auf welcher der Workflow angestoßen werden soll
+help-arg-actions-dispatch-ref = Git-Revision, auf welcher der Workflow angestoßen werden soll
 help-arg-org-options-full_name = Der Anzeigename der Organisation
 help-arg-org-options-full_name-long =
     Der Anzeigename der Organisation
 
-    Dies hat nicht die Einschränkungen des `name` Arguments und kann beliebigen UTF-8 Text beinhalten
+    Dies hat nicht die Einschränkungen des `name`-Arguments und kann beliebigen UTF-8-Text beinhalten
 help-arg-org-options-description = Die Beschreibung der Organisation
-help-arg-org-options-email = Die Kontakt E-Mail Adresse der Organisation
+help-arg-org-options-email = Die Kontakt-E-Mail-Adresse der Organisation
 help-arg-org-options-location = Der Standort der Organisation
 help-arg-org-options-website = Die Website der Organisation
 help-arg-org-options-visibility = Das Sichtbarkeitslevel der Organisation
@@ -667,11 +667,11 @@ help-arg-org-create-name = Der Benutzername für die Organisation
 help-arg-org-create-name-long =
     Der Benutzername für die Organisation
 
-    Dieser kann nur alphanumerische Zeichen, Binde- und Unterstrich und Punkte beinhalten.
-    Er muss mit einem alphanumerischen Zeichen starten und kann keine aufeinanderfolgenden
+    Dieser darf nur alphanumerische Zeichen, Binde- und Unterstrich und Punkte beinhalten.
+    Er muss mit einem alphanumerischen Zeichen starten und darf keine aufeinanderfolgenden
     Binde- und Unterstriche oder Punkte enthalten.
 
-    Wollen sie einen Namen ohne diese Einschränkungen, steht die `--full-name` Option zur Verfügung.
+    Wollen sie einen Namen ohne diese Einschränkungen, steht die `--full-name`-Option zur Verfügung.
 help-cmd-actions-tasks = Listet die Aufgaben einer Repo auf
 help-arg-actions-tasks-page = Die Seite, die angezeigt werden soll. Beinhaltet immer bis zu 20 Aufgaben
 help-cmd-actions-variables = Liste Variablen auf und verwalte diese
@@ -743,3 +743,134 @@ msg-milestone-view =
     }
 msg-milestone-deleted = Meilenstein gelöscht
 msg-milestone-not_found = Der angegebene Meilenstein konnte nicht gefunden werden
+
+help-arg-org-options-visibility-long =
+    Die Sichtbarkeit der Organisation
+
+    Öffentliche Organisationen können von jedermann eingesehen werden, begrenzte
+    Organisationen nur von angemeldeten Benutzern und private Organisationen nur
+    von ihren eigenen Mitgliedern.
+help-cmd-org-visibility = Lasse dir die Sichtbarkeit deiner Mitgliedschaft in einer Organisation anzeigen und ändere sie.
+help-arg-org-visibility-org = Der Name der Organisation, für die deine Sichtbarkeit angezeigt werden soll
+help-arg-org-visibility-set = Ändere deine Sichtbarkeit
+help-cmd-org-label-list = Alle Issue-Labels einer Organisation auflisten
+help-arg-org-label-list-org = Der Name der Organisation, deren Labels aufgelistet werden sollen
+help-cmd-org-label-add = Ein neues Issue-Label zu einer Organisation hinzufügen
+help-arg-org-label-add-org = Der Name der Organisation, zu der das Label hinzugefügt werden soll
+help-arg-org-label-add-name = Der Name des hinzuzufügenden Labels
+help-arg-org-label-add-color = Der Hexadezimalcode des hinzuzufügenden Labels
+help-arg-org-label-add-description = Eine Beschreibung des Zwecks des Labels
+help-cmd-org-label-edit = Issue-Label einer Organisation bearbeiten
+help-arg-org-label-edit-org = Der Name der Organisation, zu der das Label gehört
+help-arg-org-label-edit-name = Der Name des zu bearbeitenden Labels
+help-arg-org-label-edit-new_name = Das Label umbenennen
+help-arg-org-label-edit-color = Dem Label einen neuen Hexadezimalcode geben
+help-arg-org-label-edit-description = Eine Beschreibung des Zwecks des Labels hinzufügen
+help-cmd-org-label-rm = Ein Issue-Label aus einer Organisation entfernen
+help-arg-org-label-rm-org = Der Name der Organisation, zu der das Label gehört
+help-arg-org-label-rm-label = Der Name des Labels, das aus der Organisation entfernt werden soll
+help-cmd-org-repo-list = Alle Repos auflisten, die dieser Organisation gehören
+help-arg-org-repo-list-org = Der Name der Organisation, deren Repos aufgelistet werden sollen
+help-arg-org-repo-list-page = Welche Seite der Ergebnisse angezeigt werden soll
+help-cmd-org-repo-create = Ein neues Repository in dieser Organisation anlegen
+help-arg-org-repo-create-org = Der Name der Organisation, in der das Repo angelegt werden soll
+help-cmd-org-team-list = Alle Teams in einer Organisation einsehen
+help-arg-org-team-list-org = Der Name der Organisation, deren Teams aufgelistet werden sollen
+help-cmd-org-team-view = Information über ein einzelnes Team anzeigen
+help-arg-org-team-view-org = Der Name der Organisation, zu der das Team gehört
+help-arg-org-team-view-name = Der Name des anzuzeigenden Teams
+help-arg-org-team-options-description = Eine Beschreibung dessen, was das Team macht
+help-arg-org-team-options-read_permissions = Eine durch Kommata getrennte Liste von Leseberechtigungen, die diesem Team erteilt werden sollen
+help-arg-org-team-options-read_permissions-long =
+    Eine durch Kommata getrennte Liste von Leseberechtigungen, die diesem Team erteilt werden sollen
+
+    Liste der Berechtigungen:
+     - wiki
+     - ext_wiki
+     - issues
+     - ext_issues
+     - pulls
+     - projects
+     - actions
+     - code
+     - releases
+     - packages
+
+    Alternativ kannst du `all` benutzen, um jede Leseberechtigung zu erteilen.
+help-arg-org-team-options-write_permissions = Eine durch Kommata getrennte Liste von Lese- und Schreibberechtigungen, die diesem Team erteilt werden sollen
+help-arg-org-team-options-write_permissions-long =
+    Eine durch Kommata getrennte Liste von Lese-und-Schreibberechtigungen, die diesem Team erteilt werden sollen
+
+    Liste der Berechtigungen:
+     - wiki
+     - ext_wiki
+     - issues
+     - ext_issues
+     - pulls
+     - projects
+     - actions
+     - code
+     - releases
+     - packages
+
+    Alternativ kannst du `all` verwenden, um jede Lese-und-Schreibberechtigung zu gewähren.
+help-cmd-org-team-create = Neues Team erstellen
+help-arg-org-team-create-org = Der Name der Organisation, in der das Team erstellt werden soll
+help-arg-org-team-create-name = Der Name des neuen Teams
+help-arg-org-team-create-name-long =
+    Der Name des neuen Teams
+
+    Dieser darf nur alphanumerische Zeichen enthalten
+help-arg-org-team-create-can_create_repos = Mitgliedern dieses Teams erlauben, Repos in der Organisation zu erstellen
+help-arg-org-team-create-include_all_repos = Diesem Team Zugriff auf jedes Repo gewähren
+help-arg-org-team-create-admin = Diesem Team Administratorrechte in der Organisation gewähren
+help-cmd-org-team-edit = Die Informationen und Berechtigungen eines Teams bearbeiten
+help-arg-org-team-edit-org = Der Name der Organisation, zu der das Team gehört
+help-arg-org-team-edit-name = Der Name des zu bearbeitenden Teams
+help-arg-org-team-edit-can_create_repos = Mitgliedern dieses Teams erlauben, Repos in der Organisation zu erstellen
+help-arg-org-team-edit-include_all_repos = Diesem Team Zugriff auf jedes Repo gewähren
+help-arg-org-team-edit-admin = Diesem Team Administratorrechte in der Organisation erteilen
+help-cmd-org-team-delete = Ein Team aus einer Organisation löschen
+help-cmd-org-team-delete-long =
+    Ein Team aus einer Organisation löschen
+
+    Beachte, dass dadurch die Repos des Teams NICHT gelöscht werden!
+help-arg-org-team-delete-org = Der Name der Organisation, zu der das Team gehört
+help-arg-org-team-delete-name = Der Name des zu löschenden Teams
+help-cmd-org-team-repo-list = Alle Repos auflisten, auf die dieses Team Zugriff hat
+help-arg-org-team-repo-list-org = Der Name der Organisation, zu der das Team gehört
+help-arg-org-team-repo-list-team = Der Name des Teams, dessen Repos angezeigt werden sollen
+help-arg-org-team-repo-list-page = Welche Seite der Ergebnisse angezeigt werden soll
+help-cmd-org-team-repo-add = Einem Team Zugriff auf ein existierendes Repo gewähren
+help-arg-org-team-repo-add-org = Der Name der Organisation, zu der das Team gehört
+help-arg-org-team-repo-add-team = Der Name des Teams, zu dem ein Repo hinzugefügt werden soll
+help-arg-org-team-repo-add-repo = Der Name des Repos, das zum Team hinzugefügt werden soll
+help-cmd-org-team-repo-rm = Einem Team den Zugriff auf ein Repo entziehen
+help-cmd-org-team-repo-rm-long =
+    Einem Team den Zugriff auf ein Repo entziehen
+
+    Beachte, dass das Repo dadurch NICHT gelöscht wird!
+help-arg-org-team-repo-rm-org = Der Name der Organisation, zu der das Team gehört
+help-arg-org-team-repo-rm-team = Der Name des Teams, aus dem das Repo entfernt werden soll
+help-arg-org-team-repo-rm-repo = Der Name des Repos, das aus dem Team entfernt werden soll
+help-cmd-org-team-member-list = Alle Mitglieder eines Teams auflisten
+help-arg-org-team-member-list-org = Der Name der Organisation, zu der das Team gehört
+help-arg-org-team-member-list-team = Der Name des Teams, dessen Mitglieder angezeigt werden sollen
+help-arg-org-team-member-list-page = Welche Seite der Ergebnisse angezeigt weden soll
+help-cmd-org-team-member-add = Jemanden zu einem Team hinzufügen
+help-arg-org-team-member-add-org = Der Name der Organisation, zu der das Team gehört
+help-arg-org-team-member-add-team = Der Name des Teams, zu dem ein Benutzer hinzugefügt werden soll
+help-arg-org-team-member-add-user = Der Name des Benutzers, der dem Team hinzugefügt werden soll
+help-cmd-org-team-member-rm = Jemanden aus einem Team entfernen
+help-arg-org-team-member-rm-org = Der Name der Organisation, zu der das Team gehört
+help-arg-org-team-member-rm-team = Der Name des Teams, aus dem der Benutzer entfernt werden soll
+help-arg-org-team-member-rm-user = Der Name des Benutzers, der aus dem Team entfernt werden soll
+help-cmd-issue-create = Ein neues Issue in einem Repo erstellen
+help-arg-issue-create-title = Titel des Issues
+help-arg-issue-create-body = Der Textkörper des Issues
+help-arg-issue-create-body-long =
+    Der Textkörper des Issues
+
+    Wenn du dies leer lässt, wird dein Textbearbeitungsprogramm geöffnet werden, es sei denn, --body-file ist angegeben.
+help-arg-issue-create-body_file = Die Datei, aus welcher der Textkörper des Issues gelesen werden soll
+help-arg-issue-create-template = Die beim Erstellen eines Issues zu verwendende Vorlage
