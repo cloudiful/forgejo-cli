@@ -432,7 +432,7 @@ pub enum ReviewCommand {
         reviewers: Option<Vec<String>>,
 
         #[clap(help = h!("arg-pr-review-request-team"))]
-        #[clap(long, short)]
+        #[clap(long = "team", short)]
         team_reviewers: Option<Vec<String>>,
     },
 }
