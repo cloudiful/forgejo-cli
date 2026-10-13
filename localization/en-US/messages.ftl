@@ -695,6 +695,11 @@ msg-pr-review-list-comment_header = {STYLE("bold", "bright-cyan")}{$commenter}{S
         [some] (resolved by {$resolver})
     }:
 
+help-cmd-pr-review-request = Request reviewer on a pull request
+help-arg-pr-review-request-reviewers = Reviewers to add by username
+help-arg-pr-review-request-team = Teams to request review from
+msg-pr-review-request-success = Reviewers have been requested successfully
+
 help-cmd-pr-create = Create a new pull request
 help-arg-pr-create-base = The branch to merge onto
 help-arg-pr-create-head = The branch to pull changes from
