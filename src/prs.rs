@@ -2187,7 +2187,7 @@ async fn request_pr_review(
     )
     .await?;
 
-    ftl_println!("msg-pr-review-request-success");
+    ftl_println!("msg-pr-review-request-success", number = pr_number);
 
     Ok(())
 }
