@@ -9,7 +9,8 @@ use forgejo_api::{
     CountHeader, Forgejo,
     structs::{
         CreatePullRequestOption, MergePullRequestOption, PullReview, PullReviewComment,
-        RepoGetPullRequestCommitsQuery, RepoGetPullRequestFilesQuery, StateType,
+        PullReviewRequestOptions, RepoGetPullRequestCommitsQuery, RepoGetPullRequestFilesQuery,
+        StateType,
     },
 };
 use futures::stream::{StreamExt, TryStreamExt};
@@ -424,6 +425,16 @@ pub enum ReviewCommand {
         #[clap(long, short)]
         all: bool,
     },
+    #[clap(about = h!("cmd-pr-review-request"))]
+    #[group(required = true, multiple = true)]
+    Request {
+        #[clap(help = h!("arg-pr-review-request-reviewers"))]
+        reviewers: Option<Vec<String>>,
+
+        #[clap(help = h!("arg-pr-review-request-team"))]
+        #[clap(long = "team", short)]
+        team_reviewers: Option<Vec<String>>,
+    },
 }
 
 // Used in `issues` module
@@ -668,6 +679,10 @@ impl PrCommand {
                     ReviewCommand::List { comments, all } => {
                         view_pr_reviews(repo, &api, id, comments, all).await?
                     }
+                    ReviewCommand::Request {
+                        reviewers,
+                        team_reviewers,
+                    } => request_pr_review(repo, &api, id, reviewers, team_reviewers).await?,
                 }
             }
         }
@@ -2151,6 +2166,33 @@ pub async fn view_pr_reviews(
     if !first {
         ftl_println!("msg-pr-review-list-only_stale");
     }
+
+    Ok(())
+}
+
+async fn request_pr_review(
+    repo: &RepoName,
+    api: &Forgejo,
+    pr: Option<i64>,
+    reviewers: Option<Vec<String>>,
+    team_reviewers: Option<Vec<String>>,
+) -> eyre::Result<()> {
+    let pr = try_get_pr(repo, api, pr).await?;
+    let pr_number = pr.number.ok_or_eyre("pr does not have number")?;
+    let repo = repo_name_from_pr(&pr)?;
+
+    api.repo_create_pull_review_requests(
+        repo.owner(),
+        repo.name(),
+        pr_number,
+        PullReviewRequestOptions {
+            reviewers,
+            team_reviewers,
+        },
+    )
+    .await?;
+
+    ftl_println!("msg-pr-review-request-success", number = pr_number);
 
     Ok(())
 }
