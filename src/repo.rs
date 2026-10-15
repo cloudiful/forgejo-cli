@@ -1504,6 +1504,8 @@ pub enum MigrateService {
     Onedev,
     Gitbucket,
     Codebase,
+    Pagure,
+    BitbucketDc,
 }
 
 impl FromStr for MigrateService {
@@ -1520,6 +1522,8 @@ impl FromStr for MigrateService {
             "onedev" | "one-dev" => Ok(Self::Onedev),
             "gitbucket" | "git-bucket" => Ok(Self::Gitbucket),
             "codebase" => Ok(Self::Codebase),
+            "pagure" => Ok(Self::Pagure),
+            "bitbucket-dc" => Ok(Self::BitbucketDc),
             _ => Err(MigrateServiceParseError),
         }
     }
@@ -1533,12 +1537,14 @@ impl MigrateService {
             Cli::Git => Api::Git,
             Cli::Github => Api::Github,
             Cli::Gitlab => Api::Gitlab,
-            Cli::Forgejo => Api::Gitea,
+            Cli::Forgejo => Api::Forgejo,
             Cli::Gitea => Api::Gitea,
             Cli::Gogs => Api::Gogs,
             Cli::Onedev => Api::Onedev,
             Cli::Gitbucket => Api::Gitbucket,
             Cli::Codebase => Api::Codebase,
+            Cli::Pagure => Api::Pagure,
+            Cli::BitbucketDc => Api::Bitbucketdc,
         }
     }
 }
