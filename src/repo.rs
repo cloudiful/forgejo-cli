@@ -1693,6 +1693,7 @@ async fn migrate_repo(
         repo_name: name,
         repo_owner: owner,
         service: Some(service.to_api_type()),
+        #[allow(deprecated)]
         uid: None,
         wiki: Some(include.wiki),
     };

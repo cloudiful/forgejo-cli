@@ -568,6 +568,7 @@ async fn create_issue(
                 CreateIssueOption {
                     body: Some(body),
                     title,
+                    #[allow(deprecated)]
                     assignee: None,
                     assignees: None,
                     closed: None,
@@ -600,6 +601,7 @@ async fn create_issue(
                 CreateIssueOption {
                     body: Some(body),
                     title,
+                    #[allow(deprecated)]
                     assignee: None,
                     assignees: None,
                     closed: None,
@@ -1003,6 +1005,7 @@ pub async fn edit_title(
         issue,
         forgejo_api::structs::EditIssueOption {
             title: Some(new_title.to_owned()),
+            #[allow(deprecated)]
             assignee: None,
             assignees: None,
             body: None,
@@ -1043,6 +1046,7 @@ pub async fn edit_body(
         issue,
         forgejo_api::structs::EditIssueOption {
             body: Some(new_body),
+            #[allow(deprecated)]
             assignee: None,
             assignees: None,
             due_date: None,
@@ -1131,6 +1135,7 @@ pub async fn assign_to_issue(
     assignees.dedup();
     let assigned_after = assignees.len();
     let opt = forgejo_api::structs::EditIssueOption {
+        #[allow(deprecated)]
         assignee: None,
         assignees: Some(assignees),
         body: None,
@@ -1177,6 +1182,7 @@ pub async fn unassign_from_issue(
     assignees.retain(|a| !users.iter().any(|b| a.eq_ignore_ascii_case(b)));
     let assigned_after = assignees.len();
     let opt = forgejo_api::structs::EditIssueOption {
+        #[allow(deprecated)]
         assignee: None,
         assignees: Some(assignees),
         body: None,
@@ -1229,6 +1235,7 @@ pub async fn close_issue(
 
     let edit = EditIssueOption {
         state: Some("closed".into()),
+        #[allow(deprecated)]
         assignee: None,
         assignees: None,
         body: None,
@@ -1267,14 +1274,14 @@ fn host_repo<'a>(issue: &'a IssueId, fallback: &'a RepoName) -> (&'a str, &'a st
 fn issue_meta_for(target: &IssueId, host_owner: &str, host_repo: &str) -> IssueMeta {
     match &target.repo {
         Some(r) => IssueMeta {
-            index: Some(target.number),
-            owner: Some(r.owner().to_string()),
-            repo: Some(r.name().to_string()),
+            index: target.number,
+            owner: r.owner().to_string(),
+            repo: r.name().to_string(),
         },
         None => IssueMeta {
-            index: Some(target.number),
-            owner: Some(host_owner.to_string()),
-            repo: Some(host_repo.to_string()),
+            index: target.number,
+            owner: host_owner.to_string(),
+            repo: host_repo.to_string(),
         },
     }
 }
@@ -1456,6 +1463,7 @@ pub async fn edit_milestone(
                 repo.name(),
                 num,
                 EditIssueOption {
+                    #[allow(deprecated)]
                     assignee: None,
                     assignees: None,
                     body: None,
@@ -1476,6 +1484,7 @@ pub async fn edit_milestone(
                 repo.name(),
                 num,
                 EditIssueOption {
+                    #[allow(deprecated)]
                     assignee: None,
                     assignees: None,
                     body: None,
