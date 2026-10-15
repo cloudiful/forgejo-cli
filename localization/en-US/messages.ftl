@@ -1550,8 +1550,7 @@ msg-project-dir-not-found = Could not find project directory for fj
 msg-old-key-file-read =
     Note: Reading from the keys file in the old location.
         That location is deprecated. The keys file will be saved to the new location.
-msg-key-file-not-found = Could not find keys file. Creating a new file.
-msg-save-migrated-key-file-fail =
+msg-save-migrated-key-file-fail = 
     {STYLE("bold", "yellow")}Could not migrate key file to the new location!
     Please ensure, fj can write to {$path}. The old file has not been modified.{STYLE("reset")}
 
