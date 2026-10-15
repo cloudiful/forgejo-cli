@@ -1434,7 +1434,12 @@ async fn create_pr(
                     }
                 } else {
                     let pr_compare = api
-                        .repo_compare_diff(&repo_owner, &repo_name, &format!("{base}...{head}"))
+                        .repo_compare_diff(
+                            &repo_owner,
+                            &repo_name,
+                            &format!("{base}...{head}"),
+                            forgejo_api::structs::RepoCompareDiffQuery::default(),
+                        )
                         .await?;
                     let commit_messages = pr_compare
                         .commits

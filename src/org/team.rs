@@ -330,6 +330,7 @@ async fn create_team(
         permission: flags
             .admin
             .then_some(forgejo_api::structs::CreateTeamOptionPermission::Admin),
+        #[allow(deprecated)]
         units: None,
         units_map: Some(units),
     };
@@ -377,6 +378,7 @@ async fn edit_team(
         permission: flags
             .admin
             .and_then(|b| b.then_some(forgejo_api::structs::EditTeamOptionPermission::Admin)),
+        #[allow(deprecated)]
         units: None,
         units_map: Some(units),
     };
