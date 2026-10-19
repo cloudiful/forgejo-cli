@@ -188,8 +188,14 @@ impl RepoInfo {
         let url = url.or_else(fallback_host).map(|url| {
             let mut url = match url.scheme() {
                 "http" | "https" => url,
-                _ => url::Url::parse(&format!("https{}", &url[url::Position::AfterScheme..]))
-                    .expect("should always be valid"),
+                _ => {
+                    let mut url =
+                        url::Url::parse(&format!("https{}", &url[url::Position::AfterScheme..]))
+                            .expect("should always be valid");
+                    // remove the port if the remote url is not for http or https
+                    url.set_port(None).expect("shouldn't fail");
+                    url
+                }
             };
             url.set_username("").expect("shouldn't fail");
             url
