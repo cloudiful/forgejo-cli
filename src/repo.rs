@@ -193,7 +193,7 @@ impl RepoInfo {
                         url::Url::parse(&format!("https{}", &url[url::Position::AfterScheme..]))
                             .expect("should always be valid");
                     // remove the port if the remote url is not for http or https
-                    url.set_port(None).ok();
+                    url.set_port(None).expect("shouldn't fail");
                     url
                 }
             };
