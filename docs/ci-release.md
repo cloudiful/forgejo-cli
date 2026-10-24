@@ -19,7 +19,9 @@ major scheme. Existing upstream tags are immutable and never retagged.
   `pull_request`, and `workflow_call` for reuse from tag releases.
   Single `checks` job covers `cargo check`, `cargo fmt --check`,
   `cargo clippy --all-targets --locked -- -D warnings`, `cargo test`,
-  `cargo run --locked -- completion bash`, and pinned `typos`.
+  `cargo run --locked -- completion bash`,
+  `python3 -m unittest discover -s scripts/tests -v` for the Homebrew tap
+  bump script, and pinned `typos`.
   Top-level and job permissions are `contents: read` only.
 - `.github/workflows/release.yml`: triggered only by pushed `v*` tags.
   Validation accepts only strict `vX.Y.Z-cloudiful.N`. No `pull_request`,
@@ -27,6 +29,10 @@ major scheme. Existing upstream tags are immutable and never retagged.
   No `pull_request_target`. No Forgejo action references.
   All external actions are pinned to version tags (`v1`/`v2`/`v3`/`v4`),
   never `@main`.
+- `.github/workflows/bump-homebrew-tap.yml`: triggered by a successful
+  `Release` workflow run of this repository, or by a manual `workflow_dispatch`
+  from `main` with an explicit release tag. It updates only `Formula/fj.rb`
+  in `cloudiful/homebrew-tap`. See the section below.
 
 ## Native platforms
 
@@ -90,6 +96,39 @@ Asset names are unchanged from P1; download URLs carry the full fork suffix.
    distribution policy for approved fork mainline tags, not a SemVer claim.
    No private token extraction or custom secret. Backport `latest` policies
    are out of scope; do not generate backport tags.
+
+## Homebrew tap automation
+
+`.github/workflows/bump-homebrew-tap.yml` keeps `Formula/fj.rb` in
+`cloudiful/homebrew-tap` (branch `main`) aligned with the published release
+of this fork.
+
+- Trigger: a successful `Release` workflow run of this repository
+  (`workflow_run` on the `Release` workflow, conclusion `success`, same
+  `head_repository`). A failed release run or a run from another repository
+  never reaches the bump.
+- Manual catch-up: `workflow_dispatch` with a required `tag` input, accepted
+  only from `refs/heads/main`.
+- The tag must be strict `vX.Y.Z-cloudiful.N`. The workflow resolves the
+  release through the published-latest API and requires the exact tag with
+  `draft: false` and `prerelease: false`, before the download and again
+  immediately before the tap commit.
+- The job downloads `SHA256SUMS` and the three formula archives from the
+  release, verifies them against the manifest, and rewrites only the formula
+  version, the three download URLs, and the three checksums through
+  `scripts/update_homebrew_tap.py`. An invalid tag, an unexpected formula
+  shape, a checksum mismatch, a missing asset, or a version downgrade fails
+  the run and leaves the tap untouched.
+- Scope: only `Formula/fj.rb` may change. The workflow asserts that the tap
+  checkout has exactly that one changed file, commits `chore: bump fj to
+  <tag>`, and pushes normally to `main`. A run that finds the formula already
+  up to date commits and pushes nothing.
+- Secret: `HOMEBREW_TAP_TOKEN`, a fine-grained PAT with `Contents: Read and
+  write` on `cloudiful/homebrew-tap` only. It is used for the tap checkout
+  and the push step; the release download uses the workflow's own read-only
+  token. A missing secret fails the run with a clear error.
+- The tap repository runs its own CI after the push. That CI result belongs
+  to the tap repository and is not reported by this workflow.
 
 ## cargo-binstall
 

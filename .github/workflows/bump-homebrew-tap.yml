@@ -1,0 +1,194 @@
+name: Bump Homebrew tap
+
+# Keeps Formula/fj.rb in cloudiful/homebrew-tap in sync with the published
+# GitHub releases of this fork. The job runs after a successful Release
+# workflow of this repository, or on a manual dispatch from main with an
+# explicit tag. It never executes release code: it only verifies the release
+# checksums and rewrites the tap formula text.
+#
+# Required secret (repository settings, created manually by the maintainer):
+# HOMEBREW_TAP_TOKEN — a fine-grained PAT with Contents: Read and write on
+# cloudiful/homebrew-tap only. The workflow fails with a clear error when the
+# secret is missing instead of silently skipping the bump.
+
+on:
+  workflow_run:
+    workflows: ["Release"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag like v0.7.0-cloudiful.2"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bump-homebrew-tap
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    name: bump fj formula in cloudiful/homebrew-tap
+    if: >-
+      (github.event_name == 'workflow_run'
+        && github.event.workflow_run.conclusion == 'success'
+        && github.event.workflow_run.head_repository.full_name == github.repository)
+      || (github.event_name == 'workflow_dispatch'
+        && github.ref == 'refs/heads/main')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    env:
+      HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+    steps:
+      - name: Checkout trusted source
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Require Homebrew tap token
+        if: env.HOMEBREW_TAP_TOKEN == ''
+        run: |
+          set -euo pipefail
+          echo "error: secret HOMEBREW_TAP_TOKEN is not configured in this repository" >&2
+          echo "hint: add a fine-grained PAT with contents:read-write on cloudiful/homebrew-tap" >&2
+          exit 1
+
+      - name: Resolve release tag
+        id: release
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          RUN_HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          DISPATCH_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          if [[ "${EVENT_NAME}" == "workflow_dispatch" ]]; then
+            TAG="${DISPATCH_TAG}"
+          else
+            TAG="${RUN_HEAD_BRANCH}"
+          fi
+          if ! [[ "${TAG}" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)-cloudiful\.([1-9][0-9]*)$ ]]; then
+            echo "error: release tag '${TAG}' is not strict vX.Y.Z-cloudiful.N" >&2
+            exit 1
+          fi
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Verify published latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/releases/latest" > release-latest.json
+          jq -e --arg tag "${TAG}" \
+            '.tag_name == $tag and (.draft | not) and (.prerelease | not)' \
+            release-latest.json > /dev/null
+          jq -r '"release: \(.tag_name) draft=\(.draft) prerelease=\(.prerelease)"' \
+            release-latest.json
+
+      - name: Download release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          mkdir -p assets
+          gh release download "${TAG}" --repo "${GITHUB_REPOSITORY}" --dir assets \
+            --pattern SHA256SUMS \
+            --pattern forgejo-cli-x86_64-linux.tar.gz \
+            --pattern forgejo-cli-aarch64-linux.tar.gz \
+            --pattern forgejo-cli-aarch64-macos.tar.gz
+          for asset in SHA256SUMS forgejo-cli-x86_64-linux.tar.gz forgejo-cli-aarch64-linux.tar.gz forgejo-cli-aarch64-macos.tar.gz; do
+            if [[ ! -f "assets/${asset}" ]]; then
+              echo "error: release asset ${asset} is missing" >&2
+              exit 1
+            fi
+          done
+
+      - name: Checkout Homebrew tap
+        uses: actions/checkout@v4
+        with:
+          repository: cloudiful/homebrew-tap
+          ref: main
+          path: tap
+          token: ${{ env.HOMEBREW_TAP_TOKEN }}
+          persist-credentials: false
+
+      - name: Update fj formula
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          python3 scripts/update_homebrew_tap.py \
+            --formula tap/Formula/fj.rb \
+            --tag "${TAG}" \
+            --sums assets/SHA256SUMS \
+            --assets-dir assets
+
+      - name: Validate formula syntax
+        run: |
+          set -euo pipefail
+          ruby -c tap/Formula/fj.rb
+
+      - name: Re-verify published latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/releases/latest" > release-latest.json
+          jq -e --arg tag "${TAG}" \
+            '.tag_name == $tag and (.draft | not) and (.prerelease | not)' \
+            release-latest.json > /dev/null
+
+      - name: Check formula diff
+        id: diff
+        working-directory: tap
+        run: |
+          set -euo pipefail
+          changed="$(git diff --name-only)"
+          if [[ -z "${changed}" ]]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "formula is already up to date"
+            exit 0
+          fi
+          if [[ "${changed}" != "Formula/fj.rb" ]]; then
+            echo "error: unexpected changed files in the tap checkout:" >&2
+            echo "${changed}" >&2
+            exit 1
+          fi
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          git diff -- Formula/fj.rb
+
+      - name: Commit formula bump
+        if: steps.diff.outputs.changed == 'true'
+        working-directory: tap
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          git config user.name "forgejo-cli-bot"
+          git config user.email "forgejo-cli-bot@users.noreply.github.com"
+          git add -- Formula/fj.rb
+          staged="$(git diff --cached --name-only)"
+          if [[ "${staged}" != "Formula/fj.rb" ]]; then
+            echo "error: unexpected staged files:" >&2
+            echo "${staged}" >&2
+            exit 1
+          fi
+          git commit -m "chore: bump fj to ${TAG}"
+
+      - name: Push formula bump
+        if: steps.diff.outputs.changed == 'true'
+        working-directory: tap
+        env:
+          GH_TOKEN: ${{ env.HOMEBREW_TAP_TOKEN }}
+        run: |
+          set -euo pipefail
+          git -c credential.helper= -c credential.helper='!gh auth git-credential' \
+            push origin HEAD:main
