@@ -969,27 +969,51 @@ async fn get_pr_status(repo: &RepoName, api: &Forgejo, id: Option<i64>) -> eyre:
             .as_ref()
             .and_then(|head| head.sha.as_deref())
             .ok_or_eyre("pr does not have head sha")?;
-        let mut commit_statuses = api
-            .repo_get_combined_status_by_ref(repo.owner(), repo.name(), sha)
-            .stream_pages()
-            .map_ok(|page| {
-                futures::stream::iter(
-                    page.statuses
-                        .unwrap_or_default()
-                        .into_iter()
-                        .map(Result::<_, forgejo_api::ForgejoError>::Ok),
-                )
-            })
-            .try_flatten()
-            .try_collect::<Vec<_>>()
-            .await?;
-        commit_statuses.sort_by(|a, b| a.context.cmp(&b.context));
+        let commit_statuses = fetch_commit_statuses(repo, api, sha).await?;
 
         Ok(PrStatus::Open {
             pr,
             commit_statuses,
         })
     }
+}
+
+async fn fetch_commit_statuses(
+    repo: &RepoName,
+    api: &Forgejo,
+    sha: &str,
+) -> eyre::Result<Vec<forgejo_api::structs::CommitStatus>> {
+    use forgejo_api::structs::{RepoListStatusesByRefQuery, RepoListStatusesByRefQuerySort};
+    let mut all = Vec::new();
+    let mut page: u32 = 1;
+    loop {
+        let query = RepoListStatusesByRefQuery {
+            sort: Some(RepoListStatusesByRefQuerySort::Oldest),
+            state: None,
+        };
+        let (_headers, statuses): (
+            forgejo_api::structs::CommitStatusListHeaders,
+            Vec<forgejo_api::structs::CommitStatus>,
+        ) = api
+            .repo_list_statuses_by_ref(repo.owner(), repo.name(), sha, query)
+            .page(page)
+            .page_size(50)
+            .await?;
+        if statuses.is_empty() {
+            break;
+        }
+        all.extend(statuses);
+        page = page
+            .checked_add(1)
+            .ok_or_else(|| eyre::eyre!("status pagination overflow"))?;
+    }
+    let mut latest: BTreeMap<Option<String>, forgejo_api::structs::CommitStatus> = BTreeMap::new();
+    for status in all {
+        latest.insert(status.context.clone(), status);
+    }
+    let mut commit_statuses: Vec<_> = latest.into_values().collect();
+    commit_statuses.sort_by(|a, b| a.context.cmp(&b.context));
+    Ok(commit_statuses)
 }
 
 fn print_pr_status(pr_status: &PrStatus) -> eyre::Result<()> {
@@ -2505,5 +2529,373 @@ mod tests {
             }
             _ => panic!("expected attach"),
         }
+    }
+
+    use super::*;
+    use std::collections::HashMap;
+    use std::io::{Read, Write};
+    use std::sync::{Arc, Mutex};
+    use std::time::{Duration, Instant};
+
+    fn spawn_mock_server(
+        mut handler: impl FnMut(&str, &HashMap<String, String>) -> (u16, String) + Send + 'static,
+        max_requests: usize,
+    ) -> (String, Arc<Mutex<Vec<String>>>, std::thread::JoinHandle<()>) {
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind loopback");
+        let addr = listener.local_addr().expect("loopback addr");
+        listener.set_nonblocking(true).expect("nonblocking");
+        let seen: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
+        let seen_thread = Arc::clone(&seen);
+        let handle = std::thread::spawn(move || {
+            for _ in 0..max_requests {
+                let deadline = Instant::now() + Duration::from_secs(5);
+                let (mut stream, _) = loop {
+                    match listener.accept() {
+                        Ok(pair) => break pair,
+                        Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                            if Instant::now() > deadline {
+                                return;
+                            }
+                            std::thread::sleep(Duration::from_millis(10));
+                        }
+                        Err(e) => panic!("accept failed: {e}"),
+                    }
+                };
+                stream
+                    .set_read_timeout(Some(Duration::from_secs(5)))
+                    .expect("read timeout");
+                stream
+                    .set_write_timeout(Some(Duration::from_secs(5)))
+                    .expect("write timeout");
+                let mut buf = Vec::new();
+                let mut tmp = [0u8; 4096];
+                loop {
+                    match stream.read(&mut tmp) {
+                        Ok(0) => break,
+                        Ok(n) => {
+                            buf.extend_from_slice(&tmp[..n]);
+                            if buf.windows(4).any(|w| w == b"\r\n\r\n") {
+                                break;
+                            }
+                            if buf.len() > 16384 {
+                                break;
+                            }
+                        }
+                        Err(e) => panic!("read failed: {e}"),
+                    }
+                }
+                let request = String::from_utf8_lossy(&buf).into_owned();
+                let target = request
+                    .lines()
+                    .next()
+                    .unwrap_or("")
+                    .split_whitespace()
+                    .nth(1)
+                    .unwrap_or("/")
+                    .to_owned();
+                let parsed =
+                    url::Url::parse(&format!("http://127.0.0.1{target}")).expect("parse target");
+                let path = parsed.path().to_owned();
+                let query: HashMap<String, String> = parsed.query_pairs().into_owned().collect();
+                seen_thread.lock().expect("seen lock").push(target.clone());
+                let (status, body) = handler(&path, &query);
+                let reason = match status {
+                    200 => "OK",
+                    404 => "Not Found",
+                    500 => "Internal Server Error",
+                    _ => "OK",
+                };
+                let response = format!(
+                    "HTTP/1.1 {status} {reason}\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
+                    body.len()
+                );
+                stream
+                    .write_all(response.as_bytes())
+                    .expect("write response");
+                stream.flush().expect("flush");
+            }
+        });
+        (format!("http://{addr}"), seen, handle)
+    }
+
+    fn test_api(base: &str) -> forgejo_api::Forgejo {
+        forgejo_api::Forgejo::with_user_agent(
+            forgejo_api::Auth::None,
+            url::Url::parse(base).expect("base url"),
+            crate::USER_AGENT,
+        )
+        .expect("test api")
+    }
+
+    fn open_pr_body(sha: &str) -> String {
+        serde_json::json!({
+            "number": 1,
+            "state": "open",
+            "title": "test",
+            "merged": false,
+            "mergeable": true,
+            "head": {"sha": sha},
+            "base": {"label": "main"},
+            "requested_reviewers": []
+        })
+        .to_string()
+    }
+
+    fn merged_pr_body(sha: &str) -> String {
+        serde_json::json!({
+            "number": 1,
+            "state": "closed",
+            "title": "test",
+            "merged": true,
+            "mergeable": true,
+            "merged_at": "2024-01-02T03:04:05Z",
+            "merged_by": {"login": "merger"},
+            "head": {"sha": sha},
+            "base": {"label": "main"},
+            "requested_reviewers": []
+        })
+        .to_string()
+    }
+
+    fn status_value(context: &str, state: &str, id: i64) -> serde_json::Value {
+        serde_json::json!({"context": context, "status": state, "id": id})
+    }
+
+    #[tokio::test]
+    async fn pr_status_empty_returns_open_without_combined() {
+        let sha = "abc123empty";
+        let pr_body = open_pr_body(sha);
+        let combined_empty = serde_json::json!({
+            "state": "",
+            "statuses": [],
+            "total_count": 0
+        })
+        .to_string();
+        let pr_path = "/api/v1/repos/o/r/pulls/1".to_owned();
+        let statuses_path = format!("/api/v1/repos/o/r/commits/{sha}/statuses");
+        let combined_path = format!("/api/v1/repos/o/r/commits/{sha}/status");
+        let combined_assert = combined_path.clone();
+        let (base, seen, handle) = spawn_mock_server(
+            move |path, query| {
+                if path == pr_path {
+                    (200, pr_body.clone())
+                } else if path == statuses_path {
+                    assert_eq!(query.get("sort").map(String::as_str), Some("oldest"));
+                    assert_eq!(query.get("limit").map(String::as_str), Some("50"));
+                    assert_eq!(query.get("page").map(String::as_str), Some("1"));
+                    assert!(!query.contains_key("state"));
+                    (200, "[]".to_owned())
+                } else if path == combined_path {
+                    (200, combined_empty.clone())
+                } else {
+                    (404, r#"{"message":"not found"}"#.to_owned())
+                }
+            },
+            2,
+        );
+        let api = test_api(&base);
+        let repo = crate::repo::RepoName::new("o".to_owned(), "r".to_owned());
+        let result = get_pr_status(&repo, &api, Some(1)).await;
+        let joined = handle.join();
+        assert!(joined.is_ok(), "mock server hung or panicked");
+        let status = result.expect("empty statuses should succeed");
+        match status {
+            PrStatus::Open {
+                commit_statuses, ..
+            } => {
+                assert!(commit_statuses.is_empty(), "expected no statuses");
+            }
+            PrStatus::Merged { .. } => panic!("expected open, got merged"),
+        }
+        let seen = seen.lock().expect("seen lock").clone();
+        assert_eq!(
+            seen.len(),
+            2,
+            "expected PR plus one statuses page: {seen:?}"
+        );
+        assert!(
+            !seen
+                .iter()
+                .any(|t| t.split('?').next().unwrap_or("") == combined_assert),
+            "combined endpoint must never be requested: {seen:?}"
+        );
+    }
+
+    #[tokio::test]
+    async fn pr_status_keeps_newest_per_context_across_pages() {
+        let sha = "abc123pages";
+        let pr_body = open_pr_body(sha);
+        let page1_body = serde_json::Value::Array(vec![
+            status_value("ci", "success", 1),
+            status_value("lint", "pending", 2),
+        ])
+        .to_string();
+        let page2_body = serde_json::Value::Array(vec![
+            status_value("ci", "failure", 3),
+            status_value("deploy", "success", 4),
+        ])
+        .to_string();
+        let pr_path = "/api/v1/repos/o/r/pulls/1".to_owned();
+        let statuses_path = format!("/api/v1/repos/o/r/commits/{sha}/statuses");
+        let combined_path = format!("/api/v1/repos/o/r/commits/{sha}/status");
+        let (base, seen, handle) = spawn_mock_server(
+            move |path, query| {
+                if path == pr_path {
+                    (200, pr_body.clone())
+                } else if path == statuses_path {
+                    assert_eq!(query.get("sort").map(String::as_str), Some("oldest"));
+                    assert_eq!(query.get("limit").map(String::as_str), Some("50"));
+                    assert!(!query.contains_key("state"));
+                    match query.get("page").map(String::as_str) {
+                        Some("1") => (200, page1_body.clone()),
+                        Some("2") => (200, page2_body.clone()),
+                        Some("3") => (200, "[]".to_owned()),
+                        other => panic!("unexpected statuses page: {other:?}"),
+                    }
+                } else if path == combined_path {
+                    panic!("combined endpoint must never be requested");
+                } else {
+                    (404, r#"{"message":"not found"}"#.to_owned())
+                }
+            },
+            4,
+        );
+        let api = test_api(&base);
+        let repo = crate::repo::RepoName::new("o".to_owned(), "r".to_owned());
+        let result = get_pr_status(&repo, &api, Some(1)).await;
+        let joined = handle.join();
+        assert!(joined.is_ok(), "mock server hung or panicked");
+        let status = result.expect("paged statuses should succeed");
+        match status {
+            PrStatus::Open {
+                commit_statuses, ..
+            } => {
+                assert_eq!(commit_statuses.len(), 3, "one newest entry per context");
+                let contexts: Vec<&str> = commit_statuses
+                    .iter()
+                    .map(|s| s.context.as_deref().unwrap_or(""))
+                    .collect();
+                assert_eq!(
+                    contexts,
+                    vec!["ci", "deploy", "lint"],
+                    "stable lexical sort"
+                );
+                let ci = commit_statuses
+                    .iter()
+                    .find(|s| s.context.as_deref() == Some("ci"))
+                    .expect("ci present");
+                assert_eq!(
+                    ci.status,
+                    Some(forgejo_api::structs::CommitStatusState::Failure),
+                    "newest ci must win"
+                );
+            }
+            PrStatus::Merged { .. } => panic!("expected open, got merged"),
+        }
+        let seen = seen.lock().expect("seen lock").clone();
+        assert_eq!(
+            seen.len(),
+            4,
+            "expected PR plus three statuses pages: {seen:?}"
+        );
+    }
+
+    #[tokio::test]
+    async fn pr_status_propagates_http_failure() {
+        let sha = "abc123httperr";
+        let pr_body = open_pr_body(sha);
+        let pr_path = "/api/v1/repos/o/r/pulls/1".to_owned();
+        let statuses_path = format!("/api/v1/repos/o/r/commits/{sha}/statuses");
+        let (base, seen, handle) = spawn_mock_server(
+            move |path, _query| {
+                if path == pr_path {
+                    (200, pr_body.clone())
+                } else if path == statuses_path {
+                    (500, r#"{"message":"boom"}"#.to_owned())
+                } else {
+                    (404, r#"{"message":"not found"}"#.to_owned())
+                }
+            },
+            2,
+        );
+        let api = test_api(&base);
+        let repo = crate::repo::RepoName::new("o".to_owned(), "r".to_owned());
+        let result = get_pr_status(&repo, &api, Some(1)).await;
+        let joined = handle.join();
+        assert!(joined.is_ok(), "mock server hung or panicked");
+        assert!(result.is_err(), "HTTP failure must propagate, never empty");
+        let seen = seen.lock().expect("seen lock").clone();
+        assert_eq!(seen.len(), 2, "expected PR plus failed statuses: {seen:?}");
+    }
+
+    #[tokio::test]
+    async fn pr_status_propagates_malformed_json() {
+        let sha = "abc123badjson";
+        let pr_body = open_pr_body(sha);
+        let pr_path = "/api/v1/repos/o/r/pulls/1".to_owned();
+        let statuses_path = format!("/api/v1/repos/o/r/commits/{sha}/statuses");
+        let (base, seen, handle) = spawn_mock_server(
+            move |path, _query| {
+                if path == pr_path {
+                    (200, pr_body.clone())
+                } else if path == statuses_path {
+                    (200, "not json".to_owned())
+                } else {
+                    (404, r#"{"message":"not found"}"#.to_owned())
+                }
+            },
+            2,
+        );
+        let api = test_api(&base);
+        let repo = crate::repo::RepoName::new("o".to_owned(), "r".to_owned());
+        let result = get_pr_status(&repo, &api, Some(1)).await;
+        let joined = handle.join();
+        assert!(joined.is_ok(), "mock server hung or panicked");
+        assert!(
+            result.is_err(),
+            "malformed JSON must propagate, never empty"
+        );
+        let seen = seen.lock().expect("seen lock").clone();
+        assert_eq!(
+            seen.len(),
+            2,
+            "expected PR plus malformed statuses: {seen:?}"
+        );
+    }
+
+    #[tokio::test]
+    async fn pr_status_merged_makes_no_status_request() {
+        let sha = "abc123merged";
+        let pr_body = merged_pr_body(sha);
+        let pr_path = "/api/v1/repos/o/r/pulls/1".to_owned();
+        let (base, seen, handle) = spawn_mock_server(
+            move |path, _query| {
+                if path == pr_path {
+                    (200, pr_body.clone())
+                } else {
+                    panic!("merged PR must make no status request, got {path}");
+                }
+            },
+            1,
+        );
+        let api = test_api(&base);
+        let repo = crate::repo::RepoName::new("o".to_owned(), "r".to_owned());
+        let result = get_pr_status(&repo, &api, Some(1)).await;
+        let joined = handle.join();
+        assert!(joined.is_ok(), "mock server hung or panicked");
+        match result.expect("merged should succeed") {
+            PrStatus::Merged { .. } => (),
+            PrStatus::Open { .. } => panic!("expected merged, got open"),
+        }
+        let seen = seen.lock().expect("seen lock").clone();
+        assert_eq!(
+            seen.len(),
+            1,
+            "merged must make no status request: {seen:?}"
+        );
+        assert!(
+            !seen.iter().any(|t| t.contains("/status")),
+            "no status route for merged: {seen:?}"
+        );
     }
 }
