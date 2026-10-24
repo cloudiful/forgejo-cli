@@ -1,0 +1,197 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: validate tag and versions
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate strict fork tag and version parity
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          echo "tag=${TAG}"
+          if ! [[ "${TAG}" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)-cloudiful\.([1-9][0-9]*)$ ]]; then
+            echo "error: tag '${TAG}' is not strict vX.Y.Z-cloudiful.N (non-leading-zero X.Y.Z, positive N starting at 1)" >&2
+            exit 1
+          fi
+          VERSION="${TAG#v}"
+          echo "version=${VERSION}"
+          CARGO_VERSION="$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "forgejo-cli") | .version')"
+          echo "cargo=${CARGO_VERSION}"
+          if [[ "${VERSION}" != "${CARGO_VERSION}" ]]; then
+            echo "error: tag version '${VERSION}' != Cargo.toml '${CARGO_VERSION}'" >&2
+            exit 1
+          fi
+          FLAKE_VERSION="$(grep -E 'version = "' flake.nix | head -n 1 | sed -E 's/.*version = "([^"]+)".*/\1/')"
+          echo "flake=${FLAKE_VERSION}"
+          if [[ "${VERSION}" != "${FLAKE_VERSION}" ]]; then
+            echo "error: tag version '${VERSION}' != flake.nix '${FLAKE_VERSION}'" >&2
+            exit 1
+          fi
+          echo "version parity ok: ${VERSION}"
+
+  checks:
+    name: checks
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+
+  build:
+    name: build (${{ matrix.target }})
+    needs: [validate, checks]
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+            asset: forgejo-cli-x86_64-linux.tar.gz
+          - runner: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+            asset: forgejo-cli-aarch64-linux.tar.gz
+          - runner: windows-2022
+            target: x86_64-pc-windows-msvc
+            asset: forgejo-cli-x86_64-windows.zip
+          - runner: macos-14
+            target: aarch64-apple-darwin
+            asset: forgejo-cli-aarch64-macos.tar.gz
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      - name: Verify native host triple
+        shell: bash
+        run: |
+          set -euo pipefail
+          HOST="$(rustc -vV | sed -n 's/^host: //p')"
+          echo "host=${HOST} target=${{ matrix.target }}"
+          if [[ "${HOST}" != "${{ matrix.target }}" ]]; then
+            echo "error: runner host '${HOST}' != matrix target '${{ matrix.target }}'; refusing cross-compile" >&2
+            exit 1
+          fi
+
+      - name: Build release (no update-check)
+        shell: bash
+        run: cargo build --locked --release --target ${{ matrix.target }}
+
+      - name: Package tar.gz (unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar -czf "${{ matrix.asset }}" -C "target/${{ matrix.target }}/release" fj -C "${GITHUB_WORKSPACE}" LICENSE-MIT LICENSE-APACHE
+          ls -lh "${{ matrix.asset }}"
+          tar -tzf "${{ matrix.asset }}"
+
+      - name: Package zip (windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Compress-Archive -Path "target/${{ matrix.target }}/release/fj.exe", "LICENSE-MIT", "LICENSE-APACHE" -DestinationPath "${{ matrix.asset }}" -Force
+          Get-ChildItem "${{ matrix.asset }}"
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          [System.IO.Compression.ZipFile]::OpenRead((Join-Path $PWD "${{ matrix.asset }}")).Entries.FullName
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: ${{ matrix.asset }}
+          if-no-files-found: error
+
+  collect:
+    name: collect and checksum
+    needs: [build]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: forgejo-cli-*
+          path: dist
+          merge-multiple: true
+
+      - name: Verify exact assets and generate SHA256SUMS
+        shell: bash
+        run: |
+          set -euo pipefail
+          ls -1 dist
+          expected="forgejo-cli-x86_64-linux.tar.gz forgejo-cli-aarch64-linux.tar.gz forgejo-cli-x86_64-windows.zip forgejo-cli-aarch64-macos.tar.gz"
+          for f in $expected; do
+            if [[ ! -f "dist/$f" ]]; then
+              echo "error: missing expected asset dist/$f" >&2
+              exit 1
+            fi
+          done
+          count="$(ls -1 dist | wc -l | tr -d ' ')"
+          if [[ "$count" != "4" ]]; then
+            echo "error: expected 4 assets in dist, found $count" >&2
+            ls -1 dist >&2
+            exit 1
+          fi
+          (cd dist && sha256sum forgejo-cli-x86_64-linux.tar.gz forgejo-cli-aarch64-linux.tar.gz forgejo-cli-x86_64-windows.zip forgejo-cli-aarch64-macos.tar.gz > SHA256SUMS)
+          cat dist/SHA256SUMS
+          (cd dist && sha256sum -c SHA256SUMS)
+
+      - name: Upload release assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-assets
+          path: dist/*
+          if-no-files-found: error
+
+  publish:
+    name: publish release
+    needs: [validate, checks, build, collect]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download release assets
+        uses: actions/download-artifact@v4
+        with:
+          name: release-assets
+          path: release-dist
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: release-dist/*
+          fail_on_unmatched_files: true
+          draft: false
+          prerelease: false
+          make_latest: true
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

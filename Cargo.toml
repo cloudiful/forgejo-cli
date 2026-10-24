@@ -1,9 +1,9 @@
 [package]
 name = "forgejo-cli"
-version = "0.7.0"
+version = "0.7.0-cloudiful.1"
 edition = "2024"
 license = "Apache-2.0 OR MIT"
-repository = "https://codeberg.org/forgejo-contrib/forgejo-cli/"
+repository = "https://github.com/cloudiful/forgejo-cli"
 description = "CLI tool for Forgejo"
 keywords = ["cli", "forgejo"]
 categories = ["command-line-utilities", "development-tools"]
@@ -16,6 +16,9 @@ bin-dir = "{ bin }{ binary-ext }"
 
 [package.metadata.binstall.overrides.x86_64-pc-windows-msvc]
 pkg-fmt = "zip"
+
+[package.metadata.binstall.overrides.aarch64-apple-darwin]
+pkg-url = "{ repo }/releases/download/v{ version }/{ name }-aarch64-macos{ archive-suffix }"
 
 [[bin]]
 name = "fj"
