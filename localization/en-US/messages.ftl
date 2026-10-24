@@ -1597,3 +1597,18 @@ msg-milestone-view =
     }
 msg-milestone-deleted = Milestone deleted
 msg-milestone-not_found = Could not find the specified milestone
+
+help-cmd-pr-attach = Upload files as attachments to a pull request
+help-arg-pr-attach-pr = The pull request to upload attachments to
+help-arg-pr-attach-files = Files to upload as attachments
+msg-pr-attach-stdin_unsupported = standard input is not supported; specify regular files instead of `-`
+msg-pr-attach-invalid_filename = invalid filename for file {$file}
+msg-pr-attach-not_regular = not a regular file: {$file}
+msg-pr-attach-access_failed = cannot access file {$file}
+msg-pr-attach-read_failed = failed to read file {$file}
+msg-pr-attach-pr_verify_failed = could not verify pull request #{$number} is a pull request
+msg-pr-attach-upload_failed = failed to upload file {$file} or process its response; the attachment may already exist
+msg-pr-attach-missing_url = upload of file {$file} succeeded but response is missing a download URL
+msg-pr-attach-invalid_url = upload of file {$file} succeeded but response has an invalid download URL
+msg-pr-attach-write_failed = upload of file {$file} succeeded but failed to write Markdown output
+msg-pr-attach-partial = {$succeeded} earlier upload(s) remain

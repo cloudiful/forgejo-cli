@@ -23,6 +23,8 @@ You can...
 
 all from the command line! Check out [the wiki](https://codeberg.org/forgejo-contrib/forgejo-cli/wiki) for more details and explanations.
 
+See [docs/attachments.md](docs/attachments.md) for PR attachment uploads.
+
 `fj` doesn't try to replace your usage of `git`, it's meant to work alongside it. 
 It handles all the Forgejo-specific things that `git` doesn't.
 

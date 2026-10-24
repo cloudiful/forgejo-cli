@@ -25,6 +25,8 @@ use crate::{
     ftl_bail, ftl_ensure, ftl_eprintln, ftl_eyre, ftl_format, ftl_println, h, lh, milestones,
 };
 
+mod attachments;
+
 #[derive(Args, Clone, Debug)]
 pub struct PrCommand {
     #[clap(help = h!("arg-remote"))]
@@ -220,6 +222,14 @@ pub enum PrSubcommand {
         id: Option<IssueId>,
         #[clap(subcommand)]
         command: Option<ReviewCommand>,
+    },
+    #[clap(about = h!("cmd-pr-attach"))]
+    Attach {
+        #[clap(help = h!("arg-pr-attach-pr"))]
+        pr: IssueId,
+        #[clap(help = h!("arg-pr-attach-files"))]
+        #[clap(num_args = 1.., required = true)]
+        files: Vec<PathBuf>,
     },
 }
 
@@ -685,6 +695,16 @@ impl PrCommand {
                     } => request_pr_review(repo, &api, id, reviewers, team_reviewers).await?,
                 }
             }
+            Attach { pr, files } => {
+                attachments::attach_files(
+                    repo,
+                    &api,
+                    pr.number,
+                    &files,
+                    &mut std::io::stdout().lock(),
+                )
+                .await?
+            }
         }
         Ok(())
     }
@@ -714,6 +734,7 @@ impl PrCommand {
             | Merge { pr, .. }
             | Browse { id: pr }
             | Review { id: pr, .. } => pr.as_ref().and_then(|x| x.repo.as_ref()),
+            Attach { pr, .. } => pr.repo.as_ref(),
         }
     }
 
@@ -753,6 +774,10 @@ impl PrCommand {
                     "can't figure out what repo to access, try specifying with `{{owner}}/{{repo}}#{{pr}}`",
                 ),
             },
+            Attach { pr, .. } => eyre::eyre!(
+                "can't figure out what repo to access, try specifying with `{{owner}}/{{repo}}#{}`",
+                pr.number
+            ),
         }
     }
 }
@@ -2418,3 +2443,67 @@ fn repo_name_from_pr(pr: &forgejo_api::structs::PullRequest) -> eyre::Result<Rep
 //    }
 //    s
 //}
+
+#[cfg(test)]
+mod tests {
+    use clap::Parser;
+
+    use crate::Command;
+
+    use super::PrSubcommand;
+
+    fn parse_attach(args: &[&str]) -> Result<PrSubcommand, clap::Error> {
+        let mut full = vec!["fj", "pr", "attach"];
+        full.extend_from_slice(args);
+        let app = crate::App::try_parse_from(full)?;
+        match app.command {
+            Command::Pr(cmd) => Ok(cmd.command),
+            _ => panic!("expected pr command"),
+        }
+    }
+
+    #[test]
+    fn attach_requires_pr_and_files() {
+        assert!(parse_attach(&[]).is_err());
+        assert!(parse_attach(&["123"]).is_err());
+        let cmd = parse_attach(&["123", "a.txt"]).unwrap();
+        match cmd {
+            PrSubcommand::Attach { pr, files } => {
+                assert_eq!(pr.number, 123);
+                assert!(pr.repo.is_none());
+                assert_eq!(files.len(), 1);
+            }
+            _ => panic!("expected attach"),
+        }
+    }
+
+    #[test]
+    fn attach_supports_repo_qualified_and_order() {
+        let cmd = parse_attach(&["owner/repo#7", "b.txt", "a.txt"]).unwrap();
+        match cmd {
+            PrSubcommand::Attach { pr, files } => {
+                assert_eq!(pr.number, 7);
+                assert!(pr.repo.is_some());
+                assert_eq!(
+                    files,
+                    vec![
+                        std::path::PathBuf::from("b.txt"),
+                        std::path::PathBuf::from("a.txt")
+                    ]
+                );
+            }
+            _ => panic!("expected attach"),
+        }
+    }
+
+    #[test]
+    fn attach_parser_accepts_dash_for_runtime_reject() {
+        let cmd = parse_attach(&["7", "-"]).unwrap();
+        match cmd {
+            PrSubcommand::Attach { files, .. } => {
+                assert_eq!(files, vec![std::path::PathBuf::from("-")]);
+            }
+            _ => panic!("expected attach"),
+        }
+    }
+}
