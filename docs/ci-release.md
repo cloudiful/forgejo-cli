@@ -8,8 +8,8 @@ Release source and destination: `https://github.com/cloudiful/forgejo-cli`.
 `Cargo.toml` `package.repository` points there. The user manages the existing
 Forgejo push mirror to that URL; no agent mirror operation is part of this task.
 
-Current fork version: `0.7.0-cloudiful.1` (upstream `0.7.0` baseline plus
-cloudiful revision `1`). Next fork patch is `0.7.0-cloudiful.2`; an upstream
+Current fork version: `0.7.0-cloudiful.2` (upstream `0.7.0` baseline plus
+cloudiful revision `2`). Next fork patch is `0.7.0-cloudiful.3`; an upstream
 `0.8.0` sync becomes `0.8.0-cloudiful.1`. There is no independent evolving
 major scheme. Existing upstream tags are immutable and never retagged.
 
@@ -70,8 +70,8 @@ Asset names are unchanged from P1; download URLs carry the full fork suffix.
    (for example `v0.7.0+build`). Compares the full tag version to
    `Cargo.toml` `package.version` via `cargo metadata` and to `flake.nix`
    `version` before any build or publish. Mismatch fails the run.
-   Example: `v0.7.0-cloudiful.1` matches `0.7.0-cloudiful.1`;
-   `v0.7.0-cloudiful.2` would mismatch current files.
+   Example: `v0.7.0-cloudiful.2` matches `0.7.0-cloudiful.2`;
+   `v0.7.0-cloudiful.3` would mismatch current files.
 2. `checks`: reusable call to `ci.yml`, so tag commits run the same gates
    without duplicated check definitions.
 3. `build`: four native jobs (fail-fast). Each uploads its named asset via
@@ -125,10 +125,10 @@ No dependency or binary-name changes were made for this.
 
 ## Version parity
 
-Full fork version must be equal in `Cargo.toml` (`0.7.0-cloudiful.1`),
-`Cargo.lock` root `forgejo-cli` entry (`0.7.0-cloudiful.1`,
-dependencies unchanged), `flake.nix` (`0.7.0-cloudiful.1`), the full tag
-(`v0.7.0-cloudiful.1`), and docs. Each fork patch increments `N`;
+Full fork version must be equal in `Cargo.toml` (`0.7.0-cloudiful.2`),
+`Cargo.lock` root `forgejo-cli` entry (`0.7.0-cloudiful.2`,
+dependencies unchanged), `flake.nix` (`0.7.0-cloudiful.2`), the full tag
+(`v0.7.0-cloudiful.2`), and docs. Each fork patch increments `N`;
 an upstream sync changes `X.Y.Z` and resets `N` to `1`. SemVer treats the
 `-cloudiful.N` suffix as prerelease; that is documented honestly and does
 not change the GitHub `prerelease: false` distribution setting above.
