@@ -18,7 +18,7 @@
       rec {
         packages.forgejo-cli = pkgs.rustPlatform.buildRustPackage {
           pname = "forgejo-cli";
-          version = "0.7.0-cloudiful.1";
+          version = "0.7.0-cloudiful.2";
           src = pkgs.lib.cleanSource ./.;
 
           cargoLock.lockFile = ./Cargo.lock;
