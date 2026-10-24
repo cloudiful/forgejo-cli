@@ -19,6 +19,9 @@ import update_homebrew_tap as tap  # noqa: E402
 FORMULA_ASSETS = tap.FORMULA_ASSETS
 MANIFEST_ASSETS = tap.MANIFEST_ASSETS
 
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+FIXTURE_ROOT = PROJECT_ROOT / ".cache" / "ai" / "ci-release"
+
 FORMULA_TEMPLATE = (
     '''class Fj < Formula
   desc "Command-line interface for Forgejo (cloudiful fork)"
@@ -146,7 +149,8 @@ class Workspace:
 
 class UpdateHomebrewTapTest(unittest.TestCase):
     def setUp(self) -> None:
-        self.tmp = tempfile.TemporaryDirectory()
+        FIXTURE_ROOT.mkdir(parents=True, exist_ok=True)
+        self.tmp = tempfile.TemporaryDirectory(prefix="tap-test-", dir=FIXTURE_ROOT)
         self.addCleanup(self.tmp.cleanup)
         self.root = Path(self.tmp.name)
         self.counter = 0
@@ -223,7 +227,7 @@ class UpdateHomebrewTapTest(unittest.TestCase):
 
     def test_invalid_tags_are_rejected(self) -> None:
         workspace = self.workspace()
-        workspace.write_formula()
+        original = workspace.write_formula()
         digests = workspace.write_assets()
         workspace.write_manifest(digests)
         for tag in (
@@ -241,6 +245,44 @@ class UpdateHomebrewTapTest(unittest.TestCase):
             with self.subTest(tag=tag):
                 with self.assertRaises(tap.UpdateError):
                     workspace.run_update(tag)
+                self.assertEqual(
+                    workspace.formula_path.read_text(encoding="utf-8"), original
+                )
+
+    def test_terminal_newline_and_crlf_tags_are_rejected(self) -> None:
+        workspace = self.workspace()
+        original = workspace.write_formula()
+        digests = workspace.write_assets()
+        workspace.write_manifest(digests)
+        before = workspace.formula_path.stat().st_mtime_ns
+
+        for tag in (
+            "v0.7.0-cloudiful.2\n",
+            "v0.7.0-cloudiful.2\r\n",
+            "v0.7.0-cloudiful.2\r",
+            "v0.7.0-cloudiful.2 ",
+            " v0.7.0-cloudiful.2",
+        ):
+            with self.subTest(tag=tag):
+                with self.assertRaises(tap.UpdateError):
+                    tap.parse_tag(tag)
+                with self.assertRaises(tap.UpdateError):
+                    workspace.run_update(tag)
+                self.assertEqual(
+                    workspace.formula_path.read_text(encoding="utf-8"), original
+                )
+
+        for version in (
+            "0.7.0-cloudiful.2\n",
+            "0.7.0-cloudiful.2\r\n",
+            "0.7.0-cloudiful.2\r",
+        ):
+            with self.subTest(version=version):
+                with self.assertRaises(tap.UpdateError):
+                    tap.parse_version(version)
+
+        self.assertEqual(workspace.formula_path.stat().st_mtime_ns, before)
+        self.assertEqual(workspace.formula_path.read_text(encoding="utf-8"), original)
 
     def test_manifest_problems_are_rejected(self) -> None:
         workspace = self.workspace()

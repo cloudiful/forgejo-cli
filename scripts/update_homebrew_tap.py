@@ -25,10 +25,10 @@ HOMEPAGE = "https://github.com/cloudiful/forgejo-cli"
 DOWNLOAD_URL_PREFIX = f"https://github.com/{REPO_SLUG}/releases/download/"
 
 TAG_RE = re.compile(
-    r"^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)-cloudiful\.([1-9][0-9]*)$"
+    r"v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)-cloudiful\.([1-9][0-9]*)"
 )
 VERSION_RE = re.compile(
-    r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)-cloudiful\.([1-9][0-9]*)$"
+    r"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)-cloudiful\.([1-9][0-9]*)"
 )
 CLASS_RE = re.compile(r"^\s*class\s+Fj\s+<\s+Formula\s*$")
 HOMEPAGE_RE = re.compile(r'^\s*homepage\s+"([^"]*)"')
@@ -68,14 +68,14 @@ class FormulaState:
 
 def parse_tag(tag: str) -> tuple[str, tuple[int, int, int, int]]:
     """Return the version string and numeric tuple of a strict fork tag."""
-    if not TAG_RE.match(tag):
+    if not TAG_RE.fullmatch(tag):
         raise UpdateError(f"tag {tag!r} is not strict vX.Y.Z-cloudiful.N")
     version = tag[1:]
     return version, parse_version(version)
 
 
 def parse_version(version: str) -> tuple[int, int, int, int]:
-    match = VERSION_RE.match(version)
+    match = VERSION_RE.fullmatch(version)
     if not match:
         raise UpdateError(f"version {version!r} is not strict X.Y.Z-cloudiful.N")
     return tuple(int(part) for part in match.groups())
