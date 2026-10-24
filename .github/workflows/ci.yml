@@ -43,5 +43,8 @@ jobs:
       - name: completion bash
         run: cargo run --locked -- completion bash
 
+      - name: Python unit tests
+        run: python3 -m unittest discover -s scripts/tests -v
+
       - name: typos
         uses: crate-ci/typos@v1
