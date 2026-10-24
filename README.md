@@ -4,6 +4,11 @@
 
 ... akin to `gh`, `glab`, or `tea`!
 
+> Independent fork maintained at [cloudiful/forgejo-cli](https://github.com/cloudiful/forgejo-cli),
+> based on upstream [forgejo-contrib/forgejo-cli](https://codeberg.org/forgejo-contrib/forgejo-cli) `0.7.0`.
+> Fork releases use `vX.Y.Z-cloudiful.N` (current `0.7.0-cloudiful.1`); see
+> [docs/ci-release.md](docs/ci-release.md). Not officially endorsed by upstream.
+
 [![Matrix chat badge](https://img.shields.io/badge/chat-on_matrix-brightgreen)](https://matrix.to/#/#fj-cli:cartoon-aa.xyz)
 [![Liberapay receiving badge](https://img.shields.io/liberapay/receives/forgejo-cli)](https://liberapay.com/forgejo-cli/)
 
@@ -25,8 +30,10 @@ It handles all the Forgejo-specific things that `git` doesn't.
 
 ### Installation
 
-Pre-built binaries are available for `x86_64` Windows and `x86_64` & `aarch64` Linux (GNU) on the
-[releases tab](https://codeberg.org/forgejo-contrib/forgejo-cli/releases/latest).
+Pre-built binaries are available for the four native platforms on the
+[releases tab](https://github.com/cloudiful/forgejo-cli/releases/latest).
+
+See [docs/ci-release.md](docs/ci-release.md) for exact assets, triggers and verification.
 
 See [the wiki page on installation](https://codeberg.org/forgejo-contrib/forgejo-cli/wiki/Installation) for more options.
 

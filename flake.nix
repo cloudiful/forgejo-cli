@@ -18,7 +18,7 @@
       rec {
         packages.forgejo-cli = pkgs.rustPlatform.buildRustPackage {
           pname = "forgejo-cli";
-          version = "0.7.0";
+          version = "0.7.0-cloudiful.1";
           src = pkgs.lib.cleanSource ./.;
 
           cargoLock.lockFile = ./Cargo.lock;
@@ -40,7 +40,7 @@
 
           meta = with pkgs.lib; {
             description = "CLI tool for Forgejo";
-            homepage = "https://codeberg.org/forgejo-contrib/forgejo-cli/";
+            homepage = "https://github.com/cloudiful/forgejo-cli";
             license = with licenses; [
               asl20 # or
               mit
