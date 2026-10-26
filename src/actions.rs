@@ -5,7 +5,8 @@ use eyre::OptionExt;
 use forgejo_api::{
     Forgejo, ForgejoError,
     structs::{
-        ActionVariable, CreateOrUpdateSecretOption, CreateVariableOption, UpdateVariableOption,
+        ActionVariable, CreateOrUpdateSecretOption, CreateVariableOption,
+        ListActionRunsQueryStatus, UpdateVariableOption,
     },
 };
 use hyper::StatusCode;
@@ -15,6 +16,12 @@ use crate::{
     SpecialRender, ftl_bail, ftl_eprintln, ftl_println, h,
     repo::{RepoArg, RepoInfo, RepoName},
 };
+
+mod logs;
+mod runs;
+
+#[cfg(test)]
+mod test_support;
 
 #[derive(Args, Clone, Debug)]
 pub struct ActionsCommand {
@@ -37,6 +44,89 @@ pub enum ActionsSubcommand {
         #[clap(help = h!("arg-actions-tasks-page"))]
         #[clap(long, short, default_value = "1")]
         page: u32,
+    },
+
+    #[clap(about = h!("cmd-actions-runs"))]
+    Runs {
+        #[clap(help = h!("arg-actions-runs-limit"))]
+        #[clap(
+            long,
+            short = 'L',
+            default_value = "20",
+            value_parser = clap::value_parser!(u32).range(1..=runs::RUNS_LIMIT_MAX)
+        )]
+        limit: u32,
+
+        #[clap(help = h!("arg-actions-runs-status"))]
+        #[clap(long, short = 's', value_name = "STATUS", value_parser = runs::parse_run_status)]
+        status: Option<ListActionRunsQueryStatus>,
+
+        #[clap(help = h!("arg-actions-runs-workflow"))]
+        #[clap(long, short = 'w', value_name = "ID")]
+        workflow: Option<String>,
+
+        #[clap(help = h!("arg-actions-runs-branch"))]
+        #[clap(long, short = 'b', value_name = "BRANCH")]
+        branch: Option<String>,
+
+        #[clap(help = h!("arg-actions-runs-commit"))]
+        #[clap(long, short = 'c', value_name = "SHA")]
+        commit: Option<String>,
+    },
+
+    #[clap(about = h!("cmd-actions-logs"))]
+    Logs {
+        #[clap(help = h!("arg-actions-logs-run-id"))]
+        #[clap(
+            value_name = "RUN_ID",
+            required_unless_present = "run_number",
+            conflicts_with = "run_number",
+            value_parser = clap::value_parser!(i64).range(1..)
+        )]
+        run_id: Option<i64>,
+
+        #[clap(help = h!("arg-actions-logs-run-number"))]
+        #[clap(long, value_name = "N", value_parser = clap::value_parser!(i64).range(1..))]
+        run_number: Option<i64>,
+
+        #[clap(help = h!("arg-actions-logs-job"))]
+        #[clap(
+            long,
+            short = 'j',
+            value_name = "JOB_ID",
+            value_parser = clap::value_parser!(i64).range(1..)
+        )]
+        job: Option<i64>,
+
+        #[clap(help = h!("arg-actions-logs-step"))]
+        #[clap(
+            long,
+            value_name = "N",
+            requires = "job",
+            value_parser = clap::value_parser!(u32).range(0..)
+        )]
+        step: Option<u32>,
+
+        #[clap(help = h!("arg-actions-logs-attempt"))]
+        #[clap(
+            long,
+            value_name = "N",
+            requires = "job",
+            value_parser = clap::value_parser!(i64).range(1..)
+        )]
+        attempt: Option<i64>,
+
+        #[clap(help = h!("arg-actions-logs-failed"))]
+        #[clap(long, conflicts_with_all = ["step", "attempt"])]
+        failed: bool,
+
+        #[clap(help = h!("arg-actions-logs-filter"))]
+        #[clap(long, value_name = "TEXT")]
+        filter: Option<String>,
+
+        #[clap(help = h!("arg-actions-logs-ignore-case"))]
+        #[clap(short = 'i', requires = "filter")]
+        ignore_case: bool,
     },
 
     #[clap(about = h!("cmd-actions-variables"))]
@@ -126,6 +216,49 @@ impl ActionsCommand {
             .ok_or_eyre("can't figure what repo to access, try specifying with `--repo`")?;
         match self.command {
             ActionsSubcommand::Tasks { page } => view_tasks(repo, &api, page).await?,
+
+            ActionsSubcommand::Runs {
+                limit,
+                status,
+                workflow,
+                branch,
+                commit,
+            } => {
+                let options = runs::RunsOptions {
+                    limit,
+                    status,
+                    workflow,
+                    branch,
+                    commit,
+                };
+                let mut out = std::io::stdout();
+                runs::view_runs(repo, &api, &options, &mut out).await?
+            }
+
+            ActionsSubcommand::Logs {
+                run_id,
+                run_number,
+                job,
+                step,
+                attempt,
+                failed,
+                filter,
+                ignore_case,
+            } => {
+                let options = logs::LogsOptions {
+                    run_id,
+                    run_number,
+                    job,
+                    step,
+                    attempt,
+                    failed,
+                    filter,
+                    ignore_case,
+                };
+                let mut out = std::io::stdout();
+                let mut notice = std::io::stderr();
+                logs::view_logs(repo, &api, &options, &mut out, &mut notice).await?
+            }
 
             ActionsSubcommand::Variables { command } => match command {
                 ActionsVariablesSubcommmand::List { verbose } => {
@@ -232,7 +365,6 @@ async fn view_tasks(repo: &RepoName, api: &Forgejo, page: u32) -> eyre::Result<(
 
     Ok(())
 }
-
 async fn list_variables(repo: &RepoName, api: &Forgejo, verbose: bool) -> eyre::Result<()> {
     let variables = api
         .get_repo_variables_list(repo.owner(), repo.name())
@@ -431,4 +563,116 @@ fn parse_dispatch_kvs(s: &str) -> eyre::Result<(String, String)> {
         .ok_or_eyre("Input argument does not contain a '=' character!")?;
 
     Ok((s[..eq_idx].to_string(), s[eq_idx + 1..].to_string()))
+}
+
+#[cfg(test)]
+mod tests {
+    use clap::Parser;
+
+    #[test]
+    fn runs_rejects_limits_outside_the_supported_range() {
+        assert!(crate::App::try_parse_from(["fj", "actions", "runs", "--limit", "0"]).is_err());
+        assert!(crate::App::try_parse_from(["fj", "actions", "runs", "--limit", "1001"]).is_err());
+        assert!(crate::App::try_parse_from(["fj", "actions", "runs", "--limit", "20"]).is_ok());
+    }
+
+    #[test]
+    fn runs_rejects_an_unknown_status() {
+        assert!(crate::App::try_parse_from(["fj", "actions", "runs", "--status", "nope"]).is_err());
+        assert!(
+            crate::App::try_parse_from(["fj", "actions", "runs", "--status", "failure"]).is_ok()
+        );
+    }
+
+    #[test]
+    fn logs_rejects_invalid_argument_combinations() {
+        assert!(crate::App::try_parse_from(["fj", "actions", "logs"]).is_err());
+        assert!(
+            crate::App::try_parse_from(["fj", "actions", "logs", "900", "--run-number", "7"])
+                .is_err()
+        );
+        assert!(
+            crate::App::try_parse_from(["fj", "actions", "logs", "900", "--step", "1"]).is_err()
+        );
+        assert!(
+            crate::App::try_parse_from(["fj", "actions", "logs", "900", "--attempt", "1"]).is_err()
+        );
+        assert!(
+            crate::App::try_parse_from(["fj", "actions", "logs", "900", "--failed", "--step", "1"])
+                .is_err()
+        );
+        assert!(
+            crate::App::try_parse_from([
+                "fj",
+                "actions",
+                "logs",
+                "900",
+                "--failed",
+                "--attempt",
+                "1"
+            ])
+            .is_err()
+        );
+        assert!(crate::App::try_parse_from(["fj", "actions", "logs", "900", "-i"]).is_err());
+        assert!(
+            crate::App::try_parse_from(["fj", "actions", "logs", "900", "--job", "0"]).is_err()
+        );
+        assert!(
+            crate::App::try_parse_from([
+                "fj",
+                "actions",
+                "logs",
+                "900",
+                "--job",
+                "5",
+                "--attempt",
+                "0"
+            ])
+            .is_err()
+        );
+        assert!(
+            crate::App::try_parse_from([
+                "fj", "actions", "logs", "900", "--job", "5", "--step", "-1"
+            ])
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn logs_rejects_zero_run_id() {
+        assert!(crate::App::try_parse_from(["fj", "actions", "logs", "0"]).is_err());
+        assert!(crate::App::try_parse_from(["fj", "actions", "logs", "--", "-1"]).is_err());
+        assert!(crate::App::try_parse_from(["fj", "actions", "logs", "900"]).is_ok());
+    }
+
+    #[test]
+    fn logs_accepts_the_supported_argument_combinations() {
+        assert!(crate::App::try_parse_from(["fj", "actions", "logs", "900"]).is_ok());
+        assert!(crate::App::try_parse_from(["fj", "actions", "logs", "--run-number", "7"]).is_ok());
+        assert!(crate::App::try_parse_from(["fj", "actions", "logs", "900", "--job", "5"]).is_ok());
+        assert!(
+            crate::App::try_parse_from([
+                "fj", "actions", "logs", "900", "--job", "5", "--step", "0"
+            ])
+            .is_ok()
+        );
+        assert!(
+            crate::App::try_parse_from([
+                "fj",
+                "actions",
+                "logs",
+                "900",
+                "--job",
+                "5",
+                "--attempt",
+                "2"
+            ])
+            .is_ok()
+        );
+        assert!(crate::App::try_parse_from(["fj", "actions", "logs", "900", "--failed"]).is_ok());
+        assert!(
+            crate::App::try_parse_from(["fj", "actions", "logs", "900", "--filter", "x", "-i"])
+                .is_ok()
+        );
+    }
 }

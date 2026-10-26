@@ -56,6 +56,33 @@ msg-auth-list-none = No logins.
 help-cmd-actions-tasks = List the tasks on a repo
 help-arg-actions-tasks-page = The page to show. One page always includes up to 20 tasks
 
+help-cmd-actions-runs = List the workflow runs on a repo
+help-arg-actions-runs-limit = The maximum number of runs to list
+help-arg-actions-runs-status = Only list runs with this status
+help-arg-actions-runs-workflow = Only list runs of this workflow
+help-arg-actions-runs-branch = Only list runs of this branch
+help-arg-actions-runs-commit = Only list runs of this commit
+msg-actions-runs-status-invalid = unknown run status: {$status}
+
+help-cmd-actions-logs = Show the logs of a workflow run
+help-arg-actions-logs-run-id = The ID of the run to show the logs of
+help-arg-actions-logs-run-number = The number of the run to show the logs of
+help-arg-actions-logs-job = Only show the logs of this job
+help-arg-actions-logs-step = Only show the logs of this step of the job
+help-arg-actions-logs-attempt = Only show the logs of this attempt of the job
+help-arg-actions-logs-failed = Only show the failed steps of the run
+help-arg-actions-logs-filter = Only show the log lines containing this text
+help-arg-actions-logs-ignore-case = Ignore the case of the filter text
+msg-actions-logs-job-header = === job {$job_id} ({$name}) ===
+msg-actions-logs-step-header = === step {$step} ({$name}) ===
+msg-actions-logs-no-step-details = No step details for job {$job_id}, showing the full log.
+msg-actions-logs-run-missing = Either a run ID or a run number is required.
+msg-actions-logs-run-not-found = Run {$run_id} not found.
+msg-actions-logs-run-number-not-found = No run with the number {$run_number} found.
+msg-actions-logs-run-number-ambiguous = Multiple runs with the number {$run_number} found, use the run ID instead.
+msg-actions-logs-job-not-in-run = Job {$job_id} does not belong to run {$run_id}.
+msg-actions-logs-log-missing = No logs available for job {$job_id}.
+
 help-cmd-actions-variables = List and manage variables
 
 help-cmd-actions-variables-list = List variables
