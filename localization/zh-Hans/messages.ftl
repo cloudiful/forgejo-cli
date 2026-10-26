@@ -30,6 +30,16 @@ msg-actions-dispatch-success =
         [one] 1 个输入
        *[other] { $n_inputs } 个输入
     }。
+msg-actions-runs-status-invalid = 未知的运行状态：{ $status }
+msg-actions-logs-job-header = === 作业 { $job_id }（{ $name }）===
+msg-actions-logs-step-header = === 步骤 { $step }（{ $name }）===
+msg-actions-logs-no-step-details = 作业 { $job_id } 没有步骤详情，将显示完整日志。
+msg-actions-logs-run-missing = 必须提供运行 ID 或运行编号。
+msg-actions-logs-run-not-found = 未找到运行 { $run_id }。
+msg-actions-logs-run-number-not-found = 未找到编号为 { $run_number } 的运行。
+msg-actions-logs-run-number-ambiguous = 找到多个编号为 { $run_number } 的运行，请改用运行 ID。
+msg-actions-logs-job-not-in-run = 作业 { $job_id } 不属于运行 { $run_id }。
+msg-actions-logs-log-missing = 作业 { $job_id } 没有可用的日志。
 msg-org-list-no_results = 无结果。
 msg-org-list-page_number = 第 { $page } 页，共 { $total } 页
 msg-org-view-org_name =
@@ -640,6 +650,21 @@ help-arg-auth-add_token-token = 要添加的密钥。如果未提供，将从标
 help-cmd-auth-list = 列出您当前已登录的所有实例
 help-cmd-actions-tasks = 列出仓库上的任务
 help-arg-actions-tasks-page = 要显示的页码。每页最多包含 20 个任务
+help-cmd-actions-runs = 列出仓库上的工作流程运行
+help-arg-actions-runs-limit = 要列出的运行数量上限
+help-arg-actions-runs-status = 只列出该状态的运行
+help-arg-actions-runs-workflow = 只列出该工作流程的运行
+help-arg-actions-runs-branch = 只列出该分支的运行
+help-arg-actions-runs-commit = 只列出该提交的运行
+help-cmd-actions-logs = 显示工作流程运行的日志
+help-arg-actions-logs-run-id = 要显示日志的运行 ID
+help-arg-actions-logs-run-number = 要显示日志的运行编号
+help-arg-actions-logs-job = 只显示该作业的日志
+help-arg-actions-logs-step = 只显示该作业此步骤的日志
+help-arg-actions-logs-attempt = 只显示该作业此次尝试的日志
+help-arg-actions-logs-failed = 只显示运行中失败的步骤
+help-arg-actions-logs-filter = 只显示包含该文本的日志行
+help-arg-actions-logs-ignore-case = 忽略筛选文本的大小写
 help-cmd-actions-variables = 列出并管理变量
 help-cmd-actions-variables-list = 列出变量
 help-arg-actions-variables-list-verbose = 同时打印 owner_id 和 repo_id
