@@ -1,6 +1,6 @@
 [package]
 name = "forgejo-cli"
-version = "0.7.0-cloudiful.3"
+version = "0.7.0-cloudiful.4"
 edition = "2024"
 license = "Apache-2.0 OR MIT"
 repository = "https://github.com/cloudiful/forgejo-cli"
