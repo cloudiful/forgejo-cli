@@ -6,7 +6,7 @@
 
 > Independent fork maintained at [cloudiful/forgejo-cli](https://github.com/cloudiful/forgejo-cli),
 > based on upstream [forgejo-contrib/forgejo-cli](https://codeberg.org/forgejo-contrib/forgejo-cli) `0.7.0`.
-> Fork releases use `vX.Y.Z-cloudiful.N` (current `0.7.0-cloudiful.3`); see
+> Fork releases use `vX.Y.Z-cloudiful.N` (current `0.7.0-cloudiful.4`); see
 > [docs/ci-release.md](docs/ci-release.md). Not officially endorsed by upstream.
 
 [![Matrix chat badge](https://img.shields.io/badge/chat-on_matrix-brightgreen)](https://matrix.to/#/#fj-cli:cartoon-aa.xyz)
