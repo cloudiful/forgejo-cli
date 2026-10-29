@@ -282,6 +282,28 @@ msg-pr-review-list-comment_header =
     }：
 msg-pr-create-cross_instance = 无法跨实例创建合并请求；基础分支位于 { $base_instance }，而头部分支跟踪的是 { $head_instance }
 msg-pr-create-success = 已创建合并请求 #{ $number }：{ $title }
+msg-pr-create-attach_pr = 正在将文件附加到合并请求 #{ $number }（{ $repo }）
+msg-pr-create-attach_pr_url = 合并请求地址：{ $url }
+msg-pr-create-attach_read_failed = 读取文件 { $file } 失败；合并请求 #{ $number } 已存在，且未尝试上传该文件
+msg-pr-create-attach_upload_failed = 上传文件 { $file } 失败；合并请求 #{ $number } 已存在，且该上传可能已经成功
+msg-pr-create-attach_missing_url = 文件 { $file } 上传成功，但响应中没有下载地址；合并请求 #{ $number } 已存在
+msg-pr-create-attach_invalid_url = 文件 { $file } 上传成功，但响应中的下载地址无效；合并请求 #{ $number } 已存在
+msg-pr-create-attach_body_read_failed = 无法读取合并请求 #{ $number } 的正文；上传可能已经成功，请手动将打印出的链接添加到正文中
+msg-pr-create-attach_body_update_failed = 无法更新合并请求 #{ $number } 的正文；更新可能已经成功，请先检查正文，再手动添加打印出的链接
+msg-pr-create-attach_cause = 原因：{ $cause }
+msg-pr-create-attach_partial = 合并请求 #{ $number } 的 { $total } 个文件中有 { $failed } 个未能附加：{ $files }
+msg-pr-create-attach_done = 已将 { $count } 个文件附加到合并请求 #{ $number }
+msg-pr-attach-stdin_unsupported = 不支持标准输入；请指定常规文件而不是 `-`
+msg-pr-attach-invalid_filename = 文件 { $file } 的文件名无效
+msg-pr-attach-not_regular = 不是常规文件：{ $file }
+msg-pr-attach-access_failed = 无法访问文件 { $file }
+msg-pr-attach-read_failed = 读取文件 { $file } 失败
+msg-pr-attach-pr_verify_failed = 无法确认 #{ $number } 是合并请求
+msg-pr-attach-upload_failed = 上传文件 { $file } 或处理其响应失败；该附件可能已经存在
+msg-pr-attach-missing_url = 文件 { $file } 上传成功，但响应中缺少下载地址
+msg-pr-attach-invalid_url = 文件 { $file } 上传成功，但响应中的下载地址无效
+msg-pr-attach-write_failed = 文件 { $file } 上传成功，但写入 Markdown 输出失败
+msg-pr-attach-partial = 之前上传成功的 { $succeeded } 个文件仍然保留
 msg-pr-create-agit_success = 已创建合并请求：{ $title }
 msg-pr-create-agit_push_cfg_question =
     是否要设置所需的 git 配置项，
@@ -941,6 +963,38 @@ help-arg-pr-create-autofill-long =
 help-arg-pr-create-repo = 要创建此合并请求的仓库
 help-arg-pr-create-web = 在浏览器中打开 PR 创建页面
 help-arg-pr-create-agit = 使用 AGit 工作流打开 PR
+help-arg-pr-create-attach = 要作为附件上传到新合并请求的文件
+help-arg-pr-create-attach-long =
+    在合并请求创建后将其作为附件上传，并把它们的 Markdown 引用添加到合并请求正文中。
+
+    此选项可以重复使用以上传多个文件。每个文件都会在创建合并请求之前检查，因此
+    不可用的路径不会创建合并请求。
+
+    参数可以在 "#" 之后带有替代文本：FILE#ALT。文件是 "#" 之前存在的最长路径，
+    其余部分是替代文本。只要路径存在，文件名中含有 "#" 仍然可以使用。
+
+    正文中指向已附加文件的引用会被改写为上传后的文件，因此文件可以放在合适的位置：
+
+        ![alt text](./screenshot.png)
+
+    正文中的替代文本和标题会保留，只有目标地址会被替换。相对引用会先在正文文件
+    所在目录中查找，然后在当前工作目录中查找。扩展名是常见图片格式（png、jpg、
+    jpeg、gif、webp、svg、bmp、avif、apng）的文件以图片形式引用，其他文件以链接
+    形式引用。正文中没有引用的文件会被追加到正文末尾。
+
+    如果上传失败，成功上传的引用仍会添加到正文中，失败的文件会被报告，并且命令
+    以失败状态退出。不能与 --web 或 --agit 一起使用。
+help-cmd-pr-attach = 将文件作为附件上传到合并请求
+help-cmd-pr-attach-long =
+    将文件上传到已有的合并请求，并把 Markdown 链接打印到标准输出。
+
+    此命令只打印链接，不会修改合并请求正文。若希望把链接添加到新合并请求的正文中，
+    请使用 `fj pr create --attach <FILE>...`。
+
+    示例：
+      fj pr attach 7 ./screenshot.png
+help-arg-pr-attach-pr = 要上传附件的合并请求
+help-arg-pr-attach-files = 要作为附件上传的文件
 help-cmd-pr-merge = 合并合并请求
 help-arg-pr-merge-pr = 要合并的合并请求
 help-arg-pr-merge-method = 要使用的合并方式

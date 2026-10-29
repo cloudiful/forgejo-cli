@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 use std::num::NonZeroU32;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::{io::Write, str::FromStr};
 
 use clap::{Args, Subcommand};
@@ -26,6 +26,7 @@ use crate::{
 };
 
 mod attachments;
+mod markdown_refs;
 
 #[derive(Args, Clone, Debug)]
 pub struct PrCommand {
@@ -111,6 +112,10 @@ pub enum PrSubcommand {
         #[clap(help = h!("arg-pr-create-milestone"))]
         #[clap(long)]
         milestone: Option<String>,
+
+        #[clap(help = h!("arg-pr-create-attach"), long_help = lh!("arg-pr-create-attach"))]
+        #[clap(long = "attach", conflicts_with_all = ["web", "agit"])]
+        attach: Vec<String>,
     },
     #[clap(about = h!("cmd-pr-view"))]
     View {
@@ -223,7 +228,7 @@ pub enum PrSubcommand {
         #[clap(subcommand)]
         command: Option<ReviewCommand>,
     },
-    #[clap(about = h!("cmd-pr-attach"))]
+    #[clap(about = h!("cmd-pr-attach"), long_about = lh!("cmd-pr-attach"))]
     Attach {
         #[clap(help = h!("arg-pr-attach-pr"))]
         pr: IssueId,
@@ -476,6 +481,7 @@ impl PrCommand {
                 web,
                 agit,
                 milestone,
+                attach,
             } => {
                 create_pr(
                     repo,
@@ -489,7 +495,9 @@ impl PrCommand {
                     web,
                     agit,
                     milestone,
+                    attach,
                     repo_info.remote_name(),
+                    &mut std::io::stdout(),
                 )
                 .await?
             }
@@ -1329,8 +1337,21 @@ async fn create_pr(
     web: bool,
     agit: bool,
     milestone: Option<String>,
+    attach: Vec<String>,
     remote_name: Option<&str>,
+    out: &mut dyn std::io::Write,
 ) -> eyre::Result<()> {
+    // Every attachment is checked before anything is created or sent, so an
+    // unusable path never creates a pull request.
+    let attachments =
+        attachments::validate_attachments(&attachments::parse_attachment_args(&attach)).await?;
+    // A reference of the body is looked up next to the body file first.
+    let body_dir = body_file
+        .as_ref()
+        .filter(|path| path.as_os_str() != "-")
+        .and_then(|path| path.parent())
+        .filter(|dir| !dir.as_os_str().is_empty())
+        .map(Path::to_owned);
     let mut repo_data = api.repo_get(repo.owner(), repo.name()).await?;
 
     let head_branch_name = match head {
@@ -1555,6 +1576,19 @@ async fn create_pr(
                     .as_ref()
                     .ok_or_else(|| eyre::eyre!("pr does not have title"))?;
                 ftl_println!("msg-pr-create-success", number, title);
+                if !attachments.is_empty() {
+                    attachments::attach_to_created_pr(
+                        api,
+                        &repo_owner,
+                        &repo_name,
+                        number,
+                        pr.html_url.as_ref().map(|url| url.as_str()),
+                        &attachments,
+                        body_dir.as_deref(),
+                        out,
+                    )
+                    .await?;
+                }
             }
             // no head means agit
             None => {
@@ -2483,6 +2517,75 @@ mod tests {
         match app.command {
             Command::Pr(cmd) => Ok(cmd.command),
             _ => panic!("expected pr command"),
+        }
+    }
+
+    fn parse_create(args: &[&str]) -> Result<PrSubcommand, clap::Error> {
+        let mut full = vec!["fj", "pr", "create"];
+        full.extend_from_slice(args);
+        let app = crate::App::try_parse_from(full)?;
+        match app.command {
+            Command::Pr(cmd) => Ok(cmd.command),
+            _ => panic!("expected pr command"),
+        }
+    }
+
+    #[test]
+    fn create_attach_is_repeatable() {
+        let cmd = parse_create(&["--attach", "a.png", "--attach", "b.txt"]).unwrap();
+        match cmd {
+            PrSubcommand::Create { attach, .. } => {
+                assert_eq!(
+                    attach,
+                    vec![
+                        std::path::PathBuf::from("a.png"),
+                        std::path::PathBuf::from("b.txt")
+                    ]
+                );
+            }
+            _ => panic!("expected create"),
+        }
+    }
+
+    #[test]
+    fn create_attach_keeps_an_alt_text() {
+        let cmd = parse_create(&["--attach", "a.png#my alt"]).unwrap();
+        match cmd {
+            PrSubcommand::Create { attach, .. } => {
+                assert_eq!(attach, vec!["a.png#my alt".to_owned()]);
+            }
+            _ => panic!("expected create"),
+        }
+    }
+
+    #[test]
+    fn create_without_attach_has_no_attachments() {
+        let cmd = parse_create(&["title"]).unwrap();
+        match cmd {
+            PrSubcommand::Create { attach, .. } => {
+                assert!(attach.is_empty());
+            }
+            _ => panic!("expected create"),
+        }
+    }
+
+    #[test]
+    fn create_attach_conflicts_with_web_and_agit() {
+        assert!(parse_create(&["--attach", "a.png", "--web"]).is_err());
+        assert!(parse_create(&["--attach", "a.png", "--agit"]).is_err());
+        assert!(parse_create(&["--web", "--attach", "a.png"]).is_err());
+        assert!(parse_create(&["--agit", "--attach", "a.png"]).is_err());
+    }
+
+    #[test]
+    fn create_agit_keeps_its_short_option() {
+        let cmd = parse_create(&["-a"]).unwrap();
+        match cmd {
+            PrSubcommand::Create { agit, attach, .. } => {
+                assert!(agit);
+                assert!(attach.is_empty());
+            }
+            _ => panic!("expected create"),
         }
     }
 

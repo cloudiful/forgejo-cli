@@ -752,8 +752,47 @@ help-arg-pr-create-repo = The repo to create this pull request on
 help-arg-pr-create-web = Open the PR creation page in your web browser
 help-arg-pr-create-agit = Open the PR using AGit workflow
 help-arg-pr-create-milestone = Add this PR to the given milestone
+help-arg-pr-create-attach = Files to upload as attachments to the new pull request
+help-arg-pr-create-attach-long =
+    Upload files as attachments to the pull request after it is created and
+    add Markdown references for them to the pull request body.
+
+    The option can be repeated to attach several files. Every file is checked
+    before the pull request is created, so an unusable path never creates a
+    pull request.
+
+    An argument can carry an alt text after a "#": FILE#ALT. The file is the
+    longest existing path before the "#", the rest is the alt text. A file
+    name with a "#" in it keeps working as long as the path exists.
+
+    A reference of the body that points to an attached file is rewritten to
+    the uploaded file, so the file can be placed where it belongs:
+
+        ![alt text](./screenshot.png)
+
+    The alt text and the title of the body are kept, only the destination is
+    replaced. A relative reference is looked up next to the body file first
+    and in the working directory afterwards. Files with a common image
+    extension (png, jpg, jpeg, gif, webp, svg, bmp, avif, apng) are
+    referenced as images, all other files as links. A file that the body does
+    not reference is appended to the body.
+
+    If an upload fails, the references of the successful uploads are still
+    added to the body, the failing file is reported and the command exits with
+    a failure. Cannot be combined with --web or --agit.
 msg-pr-create-cross_instance = cannot create pull request across instances; base is on {$base_instance}, while head is tracking {$head_instance}
 msg-pr-create-success = created pull request #{$number}: {$title}
+msg-pr-create-attach_pr = attaching files to pull request #{$number} in {$repo}
+msg-pr-create-attach_pr_url = pull request URL: {$url}
+msg-pr-create-attach_read_failed = failed to read file {$file}; pull request #{$number} exists and no upload was attempted for it
+msg-pr-create-attach_upload_failed = failed to upload file {$file}; pull request #{$number} exists and the upload may already have succeeded
+msg-pr-create-attach_missing_url = upload of file {$file} succeeded but the response has no download URL; pull request #{$number} exists
+msg-pr-create-attach_invalid_url = upload of file {$file} succeeded but the response has an invalid download URL; pull request #{$number} exists
+msg-pr-create-attach_body_read_failed = could not read the body of pull request #{$number}; the uploads may already have succeeded, add the printed links to the body manually
+msg-pr-create-attach_body_update_failed = could not update the body of pull request #{$number}; the update may already have succeeded, check the body before adding the printed links manually
+msg-pr-create-attach_cause = caused by: {$cause}
+msg-pr-create-attach_partial = {$failed} of {$total} file(s) could not be attached to pull request #{$number}: {$files}
+msg-pr-create-attach_done = attached {$count} file(s) to pull request #{$number}
 msg-pr-create-agit_success = created pull request: {$title}
 msg-pr-create-agit_push_cfg_question =
     Would you like to set the needed git config
@@ -1626,6 +1665,15 @@ msg-milestone-deleted = Milestone deleted
 msg-milestone-not_found = Could not find the specified milestone
 
 help-cmd-pr-attach = Upload files as attachments to a pull request
+help-cmd-pr-attach-long =
+    Upload files to an existing pull request and print Markdown links to stdout.
+
+    This command only prints the links, it does not change the pull request body.
+    Use `fj pr create --attach <FILE>...` to have the links added to the body of a
+    new pull request.
+
+    Example:
+      fj pr attach 7 ./screenshot.png
 help-arg-pr-attach-pr = The pull request to upload attachments to
 help-arg-pr-attach-files = Files to upload as attachments
 msg-pr-attach-stdin_unsupported = standard input is not supported; specify regular files instead of `-`

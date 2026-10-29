@@ -24,7 +24,9 @@ You can...
 
 all from the command line! Check out [the wiki](https://codeberg.org/forgejo-contrib/forgejo-cli/wiki) for more details and explanations.
 
-See [docs/attachments.md](docs/attachments.md) for PR attachment uploads.
+See [docs/attachments.md](docs/attachments.md) for PR attachment uploads, with
+`fj pr create --attach` and `fj pr attach`, including local references in the
+body.
 
 See [docs/actions.md](docs/actions.md) for Actions run listing and CI logs.
 
