@@ -26,7 +26,8 @@ all from the command line! Check out [the wiki](https://codeberg.org/forgejo-con
 
 See [docs/attachments.md](docs/attachments.md) for PR attachment uploads, with
 `fj pr create --attach` and `fj pr attach`, including local references in the
-body.
+body, and for listing and downloading attachments with `fj pr attachment list`
+and `fj pr attachment download`.
 
 See [docs/actions.md](docs/actions.md) for Actions run listing and CI logs.
 

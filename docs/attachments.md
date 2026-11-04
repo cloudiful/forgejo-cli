@@ -124,6 +124,68 @@ Behavior and limits:
   failing file. A missing or non-`http(s)` download URL, or a failure writing
   output, is an error even when the upload itself succeeded.
 
+## `fj pr attachment list`
+
+List the attachments of a pull request without downloading them:
+
+```sh
+fj pr attachment list 7
+fj pr attachment list owner/repo#7 --json
+```
+
+- The pull request number is optional and is inferred from the current branch
+  when omitted, like the other `fj pr` commands that take a pull request.
+- Only attachments attached to the pull request itself are listed. Comment
+  attachments, release assets and Actions artifacts are not included.
+- The list comes from the issue-asset API, so it also contains attachments that
+  the pull request body does not reference.
+- Without `--json`, every attachment prints exactly one tab-separated line with
+  the fields `id`, `size`, `name` and `browser_download_url`. Missing values are
+  empty fields and control characters in values are escaped, so one attachment
+  never spans multiple lines. An empty result prints a localized message.
+- `--json` prints a JSON array of the attachment metadata for scripts.
+
+## `fj pr attachment download`
+
+Download one attachment of a pull request:
+
+```sh
+fj pr attachment download 7 log.txt
+fj pr attachment download owner/repo#7 42 -o ./downloaded.log
+```
+
+- `<PR>` is required and supports `owner/repo#number` like `fj pr attach`.
+- `<ATTACHMENT>` is resolved as an exact filename first. A plain positive number
+  is used as an attachment ID only when no attachment has that filename.
+- A filename that matches more than one attachment is an error that lists the
+  candidate IDs instead of picking one. An unknown selector is an error.
+- Without `--output`, the validated attachment name is used as a file name in the
+  current directory. Server-supplied names that are empty, `.`/`..`, contain a
+  slash, a backslash or a drive/UNC prefix, control characters, a trailing dot or
+  space, or are a Windows reserved name (also with an extension) are refused
+  instead of being rewritten. Use `--output` to choose such a path explicitly.
+- `-o`/`--output` selects the destination file. It may use any name, but an
+  existing file or symlink is never overwritten.
+- Files are streamed to disk. A failed transfer removes only the file this
+  command created, and a truncated response is not reported as success. Nothing
+  is written to stdout and `-` is not treated specially.
+
+### Login and downloads
+
+- Downloads use the stored login. An application token is sent as
+  `token <token>`, an OAuth login as `Bearer <token>`; without a stored login
+  public attachments are downloaded anonymously.
+- The login is only sent to requests inside the configured Forgejo origin and
+  base path: same scheme, host and port, and a path under the configured base
+  path. A base path `/forgejo` therefore does not cover `/forgejo-evil`.
+- Redirects are followed manually, up to 10 hops, and the login is rechecked and
+  omitted for every hop outside that origin. External signed download URLs are
+  fetched without the login.
+- Downloads require an absolute `http(s)` URL without userinfo. Redirects to a
+  non-HTTP scheme or from HTTPS to HTTP are refused.
+- Transport errors and status failures do not include the download URL or its
+  query in the reported message.
+
 ## Limitations
 
 - The link text is the attachment name. The `#alt` syntax of `gh` is only

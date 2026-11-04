@@ -93,6 +93,18 @@ impl KeyInfo {
         Some(login_info)
     }
 
+    /// The scoped credential for an authenticated attachment request to `url`.
+    ///
+    /// The variant is chosen from the stored login and never exposes the token
+    /// outside the request header it builds.
+    pub fn attachment_auth(&self, url: &Url) -> AttachmentAuth<'_> {
+        match self.hosts.get(crate::host_name(url)) {
+            Some(LoginInfo::Application { token }) => AttachmentAuth::Token(token),
+            Some(LoginInfo::OAuth { token, .. }) => AttachmentAuth::Bearer(token),
+            None => AttachmentAuth::None,
+        }
+    }
+
     pub async fn get_api(&mut self, url: &Url) -> eyre::Result<Forgejo> {
         match self.get_login(url) {
             Some(login) => {
@@ -135,6 +147,27 @@ pub enum LoginInfo {
         refresh_token: String,
         expires_at: time::OffsetDateTime,
     },
+}
+
+/// A credential for one authenticated attachment download request.
+///
+/// Deliberately not `Debug` or `Serialize`: the token is only readable through
+/// [`AttachmentAuth::header_value`].
+pub enum AttachmentAuth<'a> {
+    None,
+    Token(&'a str),
+    Bearer(&'a str),
+}
+
+impl AttachmentAuth<'_> {
+    /// The `Authorization` header value, or `None` for anonymous access.
+    pub fn header_value(&self) -> Option<String> {
+        match self {
+            AttachmentAuth::None => None,
+            AttachmentAuth::Token(token) => Some(format!("token {token}")),
+            AttachmentAuth::Bearer(token) => Some(format!("Bearer {token}")),
+        }
+    }
 }
 
 impl LoginInfo {
@@ -183,5 +216,43 @@ impl LoginInfo {
                 Ok(api)
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn attachment_auth_maps_login_kind_to_header() {
+        let url = Url::parse("https://forgejo.example/").unwrap();
+        let host = crate::host_name(&url).to_owned();
+        let mut keys = KeyInfo::default();
+
+        assert_eq!(keys.attachment_auth(&url).header_value(), None);
+
+        keys.hosts.insert(
+            host.clone(),
+            LoginInfo::Application {
+                token: "app-token".to_owned(),
+            },
+        );
+        assert_eq!(
+            keys.attachment_auth(&url).header_value().as_deref(),
+            Some("token app-token")
+        );
+
+        keys.hosts.insert(
+            host,
+            LoginInfo::OAuth {
+                token: "oauth-token".to_owned(),
+                refresh_token: "refresh".to_owned(),
+                expires_at: time::OffsetDateTime::now_utc(),
+            },
+        );
+        assert_eq!(
+            keys.attachment_auth(&url).header_value().as_deref(),
+            Some("Bearer oauth-token")
+        );
     }
 }

@@ -1,7 +1,10 @@
 use std::path::{Component, Path, PathBuf};
 
 use eyre::Context;
-use forgejo_api::{Forgejo, structs::IssueCreateIssueAttachmentQuery};
+use forgejo_api::{
+    Forgejo,
+    structs::{Attachment, IssueCreateIssueAttachmentQuery},
+};
 
 use crate::{ftl_bail, ftl_format, repo::RepoName};
 
@@ -654,6 +657,135 @@ fn escape_label(name: &str) -> String {
         }
     }
     out
+}
+
+/// Fetch the attachment metadata the server associates with a pull request.
+pub(super) async fn list_pr_attachments(
+    repo: &RepoName,
+    api: &Forgejo,
+    pr_number: i64,
+) -> eyre::Result<Vec<Attachment>> {
+    api.issue_list_issue_attachments(repo.owner(), repo.name(), pr_number)
+        .await
+        .wrap_err_with(|| {
+            crate::ftl_format!("msg-pr-attachment-list_failed", number = pr_number).into_owned()
+        })
+}
+
+/// Escape a human field so it can never break the one-line-per-row layout.
+pub(super) fn escape_control(value: &str) -> String {
+    let mut out = String::with_capacity(value.len());
+    for c in value.chars() {
+        match c {
+            '\\' => out.push_str("\\\\"),
+            '\t' => out.push_str("\\t"),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            c if c.is_control() => {
+                use std::fmt::Write as _;
+                let _ = write!(out, "\\u{{{:x}}}", c as u32);
+            }
+            c => out.push(c),
+        }
+    }
+    out
+}
+
+fn tsv_field(value: Option<&str>) -> String {
+    value.map(escape_control).unwrap_or_default()
+}
+
+/// Print the attachment metadata as one stable TSV line per attachment, or as
+/// the untouched JSON array.
+pub(super) fn render_attachment_list(
+    attachments: &[Attachment],
+    json: bool,
+    out: &mut dyn std::io::Write,
+) -> eyre::Result<()> {
+    if json {
+        serde_json::to_writer_pretty(&mut *out, attachments)?;
+        writeln!(out)?;
+        out.flush()?;
+        return Ok(());
+    }
+    if attachments.is_empty() {
+        writeln!(
+            out,
+            "{}",
+            crate::ftl_format!("msg-pr-attachment-list-empty")
+        )?;
+        out.flush()?;
+        return Ok(());
+    }
+    for attachment in attachments {
+        let id = attachment.id.map(|id| id.to_string()).unwrap_or_default();
+        let size = attachment
+            .size
+            .map(|size| size.to_string())
+            .unwrap_or_default();
+        let name = tsv_field(attachment.name.as_deref());
+        let url = attachment
+            .browser_download_url
+            .as_ref()
+            .map(|url| escape_control(url.as_str()))
+            .unwrap_or_default();
+        writeln!(out, "{id}\t{size}\t{name}\t{url}").wrap_err("failed to write attachment list")?;
+    }
+    out.flush().wrap_err("failed to write attachment list")?;
+    Ok(())
+}
+
+/// Resolve an attachment selector: exact filename first, then a positive ID.
+pub(super) fn select_pr_attachment<'a>(
+    attachments: &'a [Attachment],
+    selector: &str,
+) -> eyre::Result<&'a Attachment> {
+    let by_name: Vec<&Attachment> = attachments
+        .iter()
+        .filter(|attachment| attachment.name.as_deref() == Some(selector))
+        .collect();
+    match by_name.as_slice() {
+        [only] => return Ok(only),
+        [] => {}
+        many => return Err(ambiguous_attachment(selector, many)),
+    }
+
+    if let Ok(id) = selector.parse::<i64>()
+        && id > 0
+    {
+        let by_id: Vec<&Attachment> = attachments
+            .iter()
+            .filter(|attachment| attachment.id == Some(id))
+            .collect();
+        match by_id.as_slice() {
+            [only] => return Ok(only),
+            [] => {}
+            many => return Err(ambiguous_attachment(selector, many)),
+        }
+    }
+
+    Err(crate::ftl_eyre!(
+        "msg-pr-attachment-not_found",
+        selector = escape_control(selector)
+    ))
+}
+
+fn ambiguous_attachment(selector: &str, candidates: &[&Attachment]) -> eyre::Report {
+    let ids = candidates
+        .iter()
+        .map(|attachment| {
+            attachment
+                .id
+                .map(|id| id.to_string())
+                .unwrap_or_else(|| "?".to_owned())
+        })
+        .collect::<Vec<_>>()
+        .join(", ");
+    crate::ftl_eyre!(
+        "msg-pr-attachment-ambiguous",
+        selector = escape_control(selector),
+        ids = ids
+    )
 }
 
 #[cfg(test)]
@@ -3158,5 +3290,143 @@ mod tests {
             format!("{body}\n![shot.png](<https://example.com/assets/1>)"),
             "the undecidable candidate keeps its bytes and the file is appended"
         );
+    }
+
+    fn metadata(
+        id: i64,
+        name: Option<&str>,
+        url: Option<&str>,
+        size: Option<i64>,
+    ) -> forgejo_api::structs::Attachment {
+        forgejo_api::structs::Attachment {
+            browser_download_url: url.map(|url| url::Url::parse(url).unwrap()),
+            created_at: None,
+            download_count: None,
+            id: Some(id),
+            name: name.map(str::to_owned),
+            size,
+            r#type: None,
+            uuid: None,
+        }
+    }
+
+    #[test]
+    fn selection_prefers_exact_name_then_positive_id() {
+        let attachment = metadata(42, Some("log.txt"), Some("https://example.com/a"), Some(10));
+        let attachments = vec![attachment];
+
+        let selected = select_pr_attachment(&attachments, "log.txt").unwrap();
+        assert_eq!(selected.id, Some(42));
+
+        let selected = select_pr_attachment(&attachments, "42").unwrap();
+        assert_eq!(selected.name.as_deref(), Some("log.txt"));
+
+        assert!(select_pr_attachment(&attachments, "missing.txt").is_err());
+        assert!(select_pr_attachment(&attachments, "0").is_err());
+        assert!(select_pr_attachment(&attachments, "-42").is_err());
+    }
+
+    #[test]
+    fn selection_prefers_a_numeric_name_over_the_id() {
+        let attachments = vec![
+            metadata(7, Some("123"), Some("https://example.com/by-name"), None),
+            metadata(123, Some("other"), Some("https://example.com/by-id"), None),
+        ];
+        let selected = select_pr_attachment(&attachments, "123").unwrap();
+        assert_eq!(selected.id, Some(7));
+    }
+
+    #[test]
+    fn duplicate_names_are_an_ambiguity_with_candidate_ids() {
+        let attachments = vec![
+            metadata(5, Some("dup.txt"), Some("https://example.com/5"), None),
+            metadata(9, Some("dup.txt"), Some("https://example.com/9"), None),
+            metadata(11, Some("other.txt"), Some("https://example.com/11"), None),
+        ];
+        let error = select_pr_attachment(&attachments, "dup.txt")
+            .unwrap_err()
+            .to_string();
+        assert!(error.contains("5"), "{error}");
+        assert!(error.contains("9"), "{error}");
+        assert!(!error.contains("11"), "{error}");
+    }
+
+    #[test]
+    fn list_tsv_escapes_control_characters() {
+        let attachments = vec![metadata(
+            3,
+            Some("a\tb\nc\rd\\e\u{7}f"),
+            Some("https://example.com/x"),
+            Some(12),
+        )];
+        let mut out = Vec::new();
+        render_attachment_list(&attachments, false, &mut out).unwrap();
+        let text = String::from_utf8(out).unwrap();
+        let lines: Vec<&str> = text.lines().collect();
+        assert_eq!(lines.len(), 1, "one row per attachment: {text:?}");
+        let fields: Vec<&str> = lines[0].split('\t').collect();
+        assert_eq!(fields.len(), 4, "four stable fields: {text:?}");
+        assert_eq!(fields[0], "3");
+        assert_eq!(fields[1], "12");
+        assert_eq!(fields[2], "a\\tb\\nc\\rd\\\\e\\u{7}f");
+        assert_eq!(fields[3], "https://example.com/x");
+    }
+
+    #[test]
+    fn list_json_is_an_array_with_metadata() {
+        let attachments = vec![metadata(
+            3,
+            Some("shot.png"),
+            Some("https://example.com/x"),
+            Some(12),
+        )];
+        let mut out = Vec::new();
+        render_attachment_list(&attachments, true, &mut out).unwrap();
+        let value: serde_json::Value = serde_json::from_slice(&out).unwrap();
+        let array = value.as_array().unwrap();
+        assert_eq!(array.len(), 1);
+        assert_eq!(array[0]["id"], 3);
+        assert_eq!(array[0]["name"], "shot.png");
+        assert_eq!(array[0]["size"], 12);
+        assert_eq!(array[0]["browser_download_url"], "https://example.com/x");
+    }
+
+    #[test]
+    fn empty_list_has_a_localized_message() {
+        let mut out = Vec::new();
+        render_attachment_list(&[], false, &mut out).unwrap();
+        let text = String::from_utf8(out).unwrap();
+        assert_eq!(
+            text.trim_end(),
+            crate::ftl_format!("msg-pr-attachment-list-empty")
+        );
+
+        let mut json = Vec::new();
+        render_attachment_list(&[], true, &mut json).unwrap();
+        assert_eq!(String::from_utf8(json).unwrap().trim_end(), "[]");
+    }
+
+    #[tokio::test]
+    async fn list_fetches_issue_assets() {
+        let body = serde_json::to_vec(&vec![metadata(
+            5,
+            Some("log.txt"),
+            Some("https://example.com/log.txt"),
+            Some(99),
+        )])
+        .unwrap();
+        let server = Server::start_with(move |captured: &Captured| {
+            if captured.path == "/api/v1/repos/o/r/issues/7/assets" {
+                (200, body.clone())
+            } else {
+                (404, br#"{"message":"not found"}"#.to_vec())
+            }
+        });
+        let api = test_api(server.addr);
+        let attachments = list_pr_attachments(&test_repo(), &api, 7).await.unwrap();
+        assert_eq!(attachments.len(), 1);
+        assert_eq!(attachments[0].id, Some(5));
+        assert_eq!(attachments[0].name.as_deref(), Some("log.txt"));
+        assert_eq!(attachments[0].size, Some(99));
     }
 }

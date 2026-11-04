@@ -1516,6 +1516,7 @@ help-arg-release-create-body-long =
     Text of the release body
 
     Using this flag without an argument will open your editor.
+help-arg-release-create-body-file = The text body of the release, to read from a file
 msg-release-create-must_specify_tag = must select tag with `--tag` or `--create-tag`
 msg-release-create-tag_flags_conflict =`--tag` and `--create-tag` are mutually exclusive; please pick just one
 msg-release-create-success = Created release {$name}
@@ -1616,7 +1617,7 @@ msg-project-dir-not-found = Could not find project directory for fj
 msg-old-key-file-read =
     Note: Reading from the keys file in the old location.
         That location is deprecated. The keys file will be saved to the new location.
-msg-save-migrated-key-file-fail = 
+msg-save-migrated-key-file-fail =
     {STYLE("bold", "yellow")}Could not migrate key file to the new location!
     Please ensure, fj can write to {$path}. The old file has not been modified.{STYLE("reset")}
 
@@ -1687,3 +1688,39 @@ msg-pr-attach-missing_url = upload of file {$file} succeeded but response is mis
 msg-pr-attach-invalid_url = upload of file {$file} succeeded but response has an invalid download URL
 msg-pr-attach-write_failed = upload of file {$file} succeeded but failed to write Markdown output
 msg-pr-attach-partial = {$succeeded} earlier upload(s) remain
+help-cmd-pr-attachment = List or download pull request attachments
+help-cmd-pr-attachment-long =
+    List and download the files attached to a pull request.
+
+    Only attachments attached to the pull request itself are listed. Attachments
+    of comments and release assets are not included.
+
+    Examples:
+      fj pr attachment list 7
+      fj pr attachment download 7 screenshot.png
+help-cmd-pr-attachment-list = List pull request attachments
+help-arg-pr-attachment-list-pr = The pull request to list attachments of, inferred from the current branch without a value
+help-arg-pr-attachment-list-json = Print the attachment metadata as a JSON array
+help-cmd-pr-attachment-download = Download a pull request attachment
+help-arg-pr-attachment-download-pr = The pull request that has the attachment
+help-arg-pr-attachment-download-attachment = Attachment filename or numeric attachment ID
+help-arg-pr-attachment-download-output = Write the download to this file instead of the attachment name
+msg-pr-attachment-list-empty = No attachments found
+msg-pr-attachment-list_failed = could not list attachments of pull request #{$number}
+msg-pr-attachment-not_found = no attachment matches {$selector}
+msg-pr-attachment-ambiguous = attachment selector {$selector} matches multiple attachments: {$ids}
+msg-pr-attachment-missing_url = attachment {$name} has no download URL
+msg-pr-attachment-missing_name = attachment has no name to use as the output file; use --output
+msg-pr-attachment-invalid_url = attachment {$name} has an invalid download URL
+msg-pr-attachment-unsafe_name = refusing unsafe attachment filename {$name}; use --output to choose a path
+msg-pr-attachment-output_exists = refusing to overwrite existing file {$file}
+msg-pr-attachment-create_failed = failed to create output file {$file}
+msg-pr-attachment-write_failed = failed to write the downloaded attachment
+msg-pr-attachment-transport = attachment download request failed
+msg-pr-attachment-http_status = attachment download failed with HTTP status {$status}
+msg-pr-attachment-redirect_invalid = attachment download redirected to an unsupported URL
+msg-pr-attachment-redirect_downgrade = attachment download refused to redirect from HTTPS to HTTP
+msg-pr-attachment-too_many_redirects = attachment download had too many redirects
+msg-pr-attachment-auth_invalid = attachment download could not build the authentication header
+msg-pr-attachment-truncated = attachment download ended before the expected size
+msg-pr-attachment-download-success = saved {$file} ({$size} bytes)

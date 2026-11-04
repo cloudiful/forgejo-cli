@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use clap::{Args, Subcommand};
 use eyre::{Context, OptionExt, eyre};
 use forgejo_api::{
@@ -45,6 +47,10 @@ pub enum ReleaseSubcommand {
         #[clap(help = h!("arg-release-create-body"), long_help = lh!("arg-release-create-body"))]
         #[clap(long, short)]
         body: Option<Option<String>>,
+
+        #[clap(help = h!("help-arg-release-create-body-file"))]
+        #[clap(long, short = 'F', value_name = "FILE", conflicts_with = "body")]
+        body_file: Option<PathBuf>,
 
         #[clap(long, short = 'B')]
         branch: Option<String>,
@@ -140,12 +146,14 @@ impl ReleaseCommand {
                 tag,
                 attach,
                 body,
+                body_file,
                 branch,
                 draft,
                 prerelease,
             } => {
                 create_release(
-                    repo, &api, name, create_tag, tag, attach, body, branch, draft, prerelease,
+                    repo, &api, name, create_tag, tag, attach, body, body_file, branch, draft,
+                    prerelease,
                 )
                 .await?
             }
@@ -197,6 +205,7 @@ async fn create_release(
     tag: Option<String>,
     attachments: Vec<String>,
     body: Option<Option<String>>,
+    body_file: Option<PathBuf>,
     branch: Option<String>,
     draft: bool,
     prerelease: bool,
@@ -219,14 +228,18 @@ async fn create_release(
         }
     };
 
-    let body = match body {
-        Some(Some(body)) => Some(body),
-        Some(None) => {
-            let mut s = String::new();
-            crate::editor(&mut s, Some("md")).await?;
-            Some(s)
+    let body = if let Some(path) = body_file {
+        Some(crate::read_file_or_stdin(&path).await?)
+    } else {
+        match body {
+            Some(Some(body)) => Some(body),
+            Some(None) => {
+                let mut s = String::new();
+                crate::editor(&mut s, Some("md")).await?;
+                Some(s)
+            }
+            None => None,
         }
-        None => None,
     };
 
     let release_opt = forgejo_api::structs::CreateReleaseOption {

@@ -67,9 +67,13 @@ pub mod bundles {
         if is_tty {
             let lang = std::env::var("LC_MESSAGES")
                 .or_else(|_| std::env::var("LANG"))
-                .unwrap_or_default()
-                .parse()
-                .unwrap_or_else(|_| langid!("en-US"));
+                .unwrap_or_default();
+            let lang = match lang.split_once(".") {
+                None => lang.as_str(),
+                Some((lang, _)) => lang,
+            }
+            .parse()
+            .unwrap_or_else(|_| langid!("en-US"));
             init_to(&lang)
         } else {
             init_to(&langid!("en-US"))
