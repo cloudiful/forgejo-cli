@@ -636,7 +636,7 @@ dependencies = [
 
 [[package]]
 name = "forgejo-cli"
-version = "0.7.0-cloudiful.5"
+version = "0.7.0-cloudiful.6"
 dependencies = [
  "auth-git2",
  "base64ct",

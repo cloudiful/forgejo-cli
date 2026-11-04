@@ -8,9 +8,9 @@ Release source and destination: `https://github.com/cloudiful/forgejo-cli`.
 `Cargo.toml` `package.repository` points there. The user manages the existing
 Forgejo push mirror to that URL; no agent mirror operation is part of this task.
 
-Current fork version: `0.7.0-cloudiful.5` (upstream `0.7.0` baseline plus
-cloudiful revision `5`). Next fork patch is `0.7.0-cloudiful.6`; an upstream
-`0.8.0` sync becomes `0.8.0-cloudiful.1`. There is no independent evolving
+Current fork version: `0.7.0-cloudiful.6` (upstream `0.7.0` release baseline,
+with upstream main integrated through `9cd1193`, plus cloudiful revision `6`).
+Next fork patch is `0.7.0-cloudiful.7`; an upstream `0.8.0` sync becomes `0.8.0-cloudiful.1`. There is no independent evolving
 major scheme. Existing upstream tags are immutable and never retagged.
 
 ## Workflows
@@ -76,8 +76,8 @@ Asset names are unchanged from P1; download URLs carry the full fork suffix.
    (for example `v0.7.0+build`). Compares the full tag version to
    `Cargo.toml` `package.version` via `cargo metadata` and to `flake.nix`
    `version` before any build or publish. Mismatch fails the run.
-   Example: `v0.7.0-cloudiful.5` matches `0.7.0-cloudiful.5`;
-   `v0.7.0-cloudiful.6` would mismatch current files.
+   Example: `v0.7.0-cloudiful.6` matches `0.7.0-cloudiful.6`;
+   `v0.7.0-cloudiful.7` would mismatch current files.
 2. `checks`: reusable call to `ci.yml`, so tag commits run the same gates
    without duplicated check definitions.
 3. `build`: four native jobs (fail-fast). Each uploads its named asset via
@@ -164,10 +164,10 @@ No dependency or binary-name changes were made for this.
 
 ## Version parity
 
-Full fork version must be equal in `Cargo.toml` (`0.7.0-cloudiful.5`),
-`Cargo.lock` root `forgejo-cli` entry (`0.7.0-cloudiful.5`,
-dependencies unchanged), `flake.nix` (`0.7.0-cloudiful.5`), the full tag
-(`v0.7.0-cloudiful.5`), and docs. Each fork patch increments `N`;
+Full fork version must be equal in `Cargo.toml` (`0.7.0-cloudiful.6`),
+`Cargo.lock` root `forgejo-cli` entry (`0.7.0-cloudiful.6`,
+dependencies unchanged), `flake.nix` (`0.7.0-cloudiful.6`), the full tag
+(`v0.7.0-cloudiful.6`), and docs. Each fork patch increments `N`;
 an upstream sync changes `X.Y.Z` and resets `N` to `1`. SemVer treats the
 `-cloudiful.N` suffix as prerelease; that is documented honestly and does
 not change the GitHub `prerelease: false` distribution setting above.
