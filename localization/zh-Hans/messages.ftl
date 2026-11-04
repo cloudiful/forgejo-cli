@@ -304,6 +304,41 @@ msg-pr-attach-missing_url = 文件 { $file } 上传成功，但响应中缺少�
 msg-pr-attach-invalid_url = 文件 { $file } 上传成功，但响应中的下载地址无效
 msg-pr-attach-write_failed = 文件 { $file } 上传成功，但写入 Markdown 输出失败
 msg-pr-attach-partial = 之前上传成功的 { $succeeded } 个文件仍然保留
+help-cmd-pr-attachment = 列出或下载合并请求附件
+help-cmd-pr-attachment-long =
+    列出并下载合并请求本身附加的文件。
+
+    只列出合并请求本身的附件，不包括评论附件和发行版附件。
+
+    示例：
+      fj pr attachment list 7
+      fj pr attachment download 7 screenshot.png
+help-cmd-pr-attachment-list = 列出合并请求附件
+help-arg-pr-attachment-list-pr = 要列出附件的合并请求；省略时从当前分支推断
+help-arg-pr-attachment-list-json = 以 JSON 数组打印附件元数据
+help-cmd-pr-attachment-download = 下载合并请求附件
+help-arg-pr-attachment-download-pr = 包含该附件的合并请求
+help-arg-pr-attachment-download-attachment = 附件文件名或数字附件 ID
+help-arg-pr-attachment-download-output = 将下载内容写入此文件，而不是使用附件名称
+msg-pr-attachment-list-empty = 未找到附件
+msg-pr-attachment-list_failed = 无法列出合并请求 #{ $number } 的附件
+msg-pr-attachment-not_found = 没有匹配 { $selector } 的附件
+msg-pr-attachment-ambiguous = 附件选择器 { $selector } 匹配多个附件：{ $ids }
+msg-pr-attachment-missing_url = 附件 { $name } 没有下载地址
+msg-pr-attachment-missing_name = 附件没有可用作输出文件的名称；请使用 --output
+msg-pr-attachment-invalid_url = 附件 { $name } 的下载地址无效
+msg-pr-attachment-unsafe_name = 拒绝不安全的附件文件名 { $name }；请使用 --output 指定路径
+msg-pr-attachment-output_exists = 拒绝覆盖已存在的文件 { $file }
+msg-pr-attachment-create_failed = 创建输出文件 { $file } 失败
+msg-pr-attachment-write_failed = 写入下载的附件失败
+msg-pr-attachment-transport = 附件下载请求失败
+msg-pr-attachment-http_status = 附件下载失败，HTTP 状态码 { $status }
+msg-pr-attachment-redirect_invalid = 附件下载重定向到了不受支持的地址
+msg-pr-attachment-redirect_downgrade = 附件下载拒绝从 HTTPS 重定向到 HTTP
+msg-pr-attachment-too_many_redirects = 附件下载的重定向次数过多
+msg-pr-attachment-auth_invalid = 附件下载无法构造认证头
+msg-pr-attachment-truncated = 附件下载在达到预期大小前结束
+msg-pr-attachment-download-success = 已保存 { $file }（{ $size } 字节）
 msg-pr-create-agit_success = 已创建合并请求：{ $title }
 msg-pr-create-agit_push_cfg_question =
     是否要设置所需的 git 配置项，
@@ -1416,7 +1451,6 @@ msg-project-dir-not-found = 找不到 fj 的项目目录
 msg-old-key-file-read =
     注意：正在从旧位置的密钥文件中读取。
         该位置已弃用。密钥文件将保存到新位置。
-msg-key-file-not-found = 找不到密钥文件。正在创建新文件。
 msg-save-migrated-key-file-fail =
     { STYLE("bold", "yellow") }无法将密钥文件迁移到新位置！
     请确保 fj 可以写入 { $path }。旧文件未被修改。{ STYLE("reset") }

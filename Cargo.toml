@@ -48,7 +48,7 @@ eyre = "0.6.12"
 fluent-bundle = "0.16.0"
 fluent-datetime = "0.2.0"
 fluent-syntax = "0.12.0"
-forgejo-api = "0.12.0"
+forgejo-api = { version = "0.12.0", default-features = false, features = ["native-tls"] }
 futures = "0.3.31"
 git2 = { version = "0.21.0", features = ["https", "ssh"] }
 hyper = "1.6.0"
@@ -58,6 +58,7 @@ icu_time = "2.2.0"
 open = "5.3.2"
 rand = "0.10.0"
 regex = "1.12.2"
+reqwest = { version = "0.13", default-features = false, features = ["native-tls"] }
 semver = { version = "1.0.26", optional = true }
 serde = { version = "1.0.219", features = ["derive"] }
 serde-saphyr = "2.0.0"
@@ -73,6 +74,7 @@ tokio = { version = "1.44.1", features = [
   "fs",
   "process",
   "io-std",
+  "io-util",
 ] }
 unic-langid = { version = "0.9.6", features = ["unic-langid-macros"] }
 url = "2.5.4"

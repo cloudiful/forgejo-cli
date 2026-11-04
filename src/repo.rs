@@ -1467,8 +1467,7 @@ pub async fn create_repo(
 
             let auth = auth_git2::GitAuthenticator::new();
             auth.push(&repo, &mut remote, &[&branch_name])?;
-
-            remote.fetch(&[&branch_shorthand], None, None)?;
+            auth.fetch(&repo, &mut remote, &[&branch_shorthand], None)?;
 
             let mut current_branch = git2::Branch::wrap(head);
             current_branch.set_upstream(Some(&format!("{upstream}/{branch_shorthand}")))?;

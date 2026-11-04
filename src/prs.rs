@@ -25,6 +25,7 @@ use crate::{
     ftl_bail, ftl_ensure, ftl_eprintln, ftl_eyre, ftl_format, ftl_println, h, lh, milestones,
 };
 
+mod attachment_download;
 mod attachments;
 mod markdown_refs;
 
@@ -236,6 +237,8 @@ pub enum PrSubcommand {
         #[clap(num_args = 1.., required = true)]
         files: Vec<PathBuf>,
     },
+    #[clap(about = h!("cmd-pr-attachment"), long_about = lh!("cmd-pr-attachment"))]
+    Attachment(PrAttachmentCommand),
 }
 
 #[derive(clap::ValueEnum, Clone, Copy, Debug)]
@@ -369,6 +372,34 @@ pub enum ViewCommand {
 pub struct PrDependCommand {
     #[clap(subcommand)]
     pub command: PrDependSubcommand,
+}
+
+#[derive(Args, Clone, Debug)]
+pub struct PrAttachmentCommand {
+    #[clap(subcommand)]
+    pub command: PrAttachmentSubcommand,
+}
+
+#[derive(Subcommand, Clone, Debug)]
+pub enum PrAttachmentSubcommand {
+    #[clap(about = h!("cmd-pr-attachment-list"))]
+    List {
+        #[clap(help = h!("arg-pr-attachment-list-pr"))]
+        pr: Option<IssueId>,
+        #[clap(help = h!("arg-pr-attachment-list-json"))]
+        #[clap(long)]
+        json: bool,
+    },
+    #[clap(about = h!("cmd-pr-attachment-download"))]
+    Download {
+        #[clap(help = h!("arg-pr-attachment-download-pr"))]
+        pr: IssueId,
+        #[clap(help = h!("arg-pr-attachment-download-attachment"))]
+        attachment: String,
+        #[clap(help = h!("arg-pr-attachment-download-output"))]
+        #[clap(long, short = 'o')]
+        output: Option<PathBuf>,
+    },
 }
 
 #[derive(Subcommand, Clone, Debug)]
@@ -713,6 +744,18 @@ impl PrCommand {
                 )
                 .await?
             }
+            Attachment(cmd) => {
+                run_attachment_command(
+                    cmd.command,
+                    repo,
+                    &api,
+                    keys,
+                    repo_info.host_url(),
+                    &mut std::io::stdout().lock(),
+                    &mut std::io::stderr().lock(),
+                )
+                .await?
+            }
         }
         Ok(())
     }
@@ -743,6 +786,12 @@ impl PrCommand {
             | Browse { id: pr }
             | Review { id: pr, .. } => pr.as_ref().and_then(|x| x.repo.as_ref()),
             Attach { pr, .. } => pr.repo.as_ref(),
+            Attachment(cmd) => match &cmd.command {
+                PrAttachmentSubcommand::List { pr, .. } => {
+                    pr.as_ref().and_then(|pr| pr.repo.as_ref())
+                }
+                PrAttachmentSubcommand::Download { pr, .. } => pr.repo.as_ref(),
+            },
         }
     }
 
@@ -786,8 +835,65 @@ impl PrCommand {
                 "can't figure out what repo to access, try specifying with `{{owner}}/{{repo}}#{}`",
                 pr.number
             ),
+            Attachment(cmd) => match &cmd.command {
+                PrAttachmentSubcommand::List { pr, .. } => match pr {
+                    Some(pr) => eyre::eyre!(
+                        "can't figure out what repo to access, try specifying with `{{owner}}/{{repo}}#{}`",
+                        pr.number
+                    ),
+                    None => eyre::eyre!(
+                        "can't figure out what repo to access, try specifying with `{{owner}}/{{repo}}#{{pr}}`"
+                    ),
+                },
+                PrAttachmentSubcommand::Download { pr, .. } => eyre::eyre!(
+                    "can't figure out what repo to access, try specifying with `{{owner}}/{{repo}}#{}`",
+                    pr.number
+                ),
+            },
         }
     }
+}
+
+#[allow(clippy::too_many_arguments)]
+async fn run_attachment_command(
+    command: PrAttachmentSubcommand,
+    repo: &RepoName,
+    api: &Forgejo,
+    keys: &mut crate::KeyInfo,
+    base: &url::Url,
+    stdout: &mut dyn std::io::Write,
+    stderr: &mut dyn std::io::Write,
+) -> eyre::Result<()> {
+    match command {
+        PrAttachmentSubcommand::List { pr, json } => {
+            let pr = try_get_pr(repo, api, pr.map(|pr| pr.number)).await?;
+            let number = pr.number.ok_or_eyre("pr does not have number")?;
+            let repo = repo_name_from_pr(&pr)?;
+            let attachments = attachments::list_pr_attachments(&repo, api, number).await?;
+            attachments::render_attachment_list(&attachments, json, stdout)?
+        }
+        PrAttachmentSubcommand::Download {
+            pr,
+            attachment,
+            output,
+        } => {
+            let pr = try_get_pr(repo, api, Some(pr.number)).await?;
+            let number = pr.number.ok_or_eyre("pr does not have number")?;
+            let repo = repo_name_from_pr(&pr)?;
+            attachment_download::download_attachment(
+                &repo,
+                api,
+                keys,
+                base,
+                number,
+                &attachment,
+                output.as_deref(),
+                stderr,
+            )
+            .await?
+        }
+    }
+    Ok(())
 }
 
 pub async fn view_pr(repo: &RepoName, api: &Forgejo, id: Option<i64>) -> eyre::Result<()> {
@@ -2333,6 +2439,14 @@ async fn guess_pr(
     api: &Forgejo,
 ) -> eyre::Result<forgejo_api::structs::PullRequest> {
     let local_repo = git2::Repository::discover(".")?;
+    guess_pr_in(&local_repo, repo, api).await
+}
+
+async fn guess_pr_in(
+    local_repo: &git2::Repository,
+    repo: &RepoName,
+    api: &Forgejo,
+) -> eyre::Result<forgejo_api::structs::PullRequest> {
     let head = local_repo.head()?;
     eyre::ensure!(head.is_branch(), "head is not on branch");
     let local_branch = git2::Branch::wrap(head);
@@ -2631,6 +2745,70 @@ mod tests {
                 assert_eq!(files, vec![std::path::PathBuf::from("-")]);
             }
             _ => panic!("expected attach"),
+        }
+    }
+
+    fn parse_attachment(args: &[&str]) -> Result<PrSubcommand, clap::Error> {
+        let mut full = vec!["fj", "pr", "attachment"];
+        full.extend_from_slice(args);
+        let app = crate::App::try_parse_from(full)?;
+        match app.command {
+            Command::Pr(cmd) => Ok(cmd.command),
+            _ => panic!("expected pr command"),
+        }
+    }
+
+    #[test]
+    fn attachment_list_pr_is_optional() {
+        let cmd = parse_attachment(&["list"]).unwrap();
+        match cmd {
+            PrSubcommand::Attachment(cmd) => match cmd.command {
+                PrAttachmentSubcommand::List { pr, json } => {
+                    assert!(pr.is_none());
+                    assert!(!json);
+                }
+                _ => panic!("expected attachment list"),
+            },
+            _ => panic!("expected attachment"),
+        }
+
+        let cmd = parse_attachment(&["list", "owner/repo#7", "--json"]).unwrap();
+        match cmd {
+            PrSubcommand::Attachment(cmd) => match cmd.command {
+                PrAttachmentSubcommand::List { pr, json } => {
+                    let pr = pr.expect("pr");
+                    assert_eq!(pr.number, 7);
+                    assert!(pr.repo.is_some());
+                    assert!(json);
+                }
+                _ => panic!("expected attachment list"),
+            },
+            _ => panic!("expected attachment"),
+        }
+    }
+
+    #[test]
+    fn attachment_download_requires_pr_and_selector() {
+        assert!(parse_attachment(&["download"]).is_err());
+        assert!(parse_attachment(&["download", "7"]).is_err());
+
+        let cmd =
+            parse_attachment(&["download", "owner/repo#7", "log.txt", "-o", "out.txt"]).unwrap();
+        match cmd {
+            PrSubcommand::Attachment(cmd) => match cmd.command {
+                PrAttachmentSubcommand::Download {
+                    pr,
+                    attachment,
+                    output,
+                } => {
+                    assert_eq!(pr.number, 7);
+                    assert!(pr.repo.is_some());
+                    assert_eq!(attachment, "log.txt");
+                    assert_eq!(output, Some(std::path::PathBuf::from("out.txt")));
+                }
+                _ => panic!("expected attachment download"),
+            },
+            _ => panic!("expected attachment"),
         }
     }
 
@@ -2999,6 +3177,304 @@ mod tests {
         assert!(
             !seen.iter().any(|t| t.contains("/status")),
             "no status route for merged: {seen:?}"
+        );
+    }
+
+    struct AttachmentScratch(PathBuf);
+
+    impl AttachmentScratch {
+        fn new(label: &str) -> Self {
+            static COUNTER: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+            let base = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(".cache/ai/1198");
+            std::fs::create_dir_all(&base).expect("scratch base");
+            loop {
+                let n = COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+                let dir = base.join(format!("routing-{label}-{}-{n}", std::process::id()));
+                match std::fs::create_dir(&dir) {
+                    Ok(()) => return Self(dir),
+                    Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => continue,
+                    Err(error) => panic!("cannot create scratch dir: {error:?}"),
+                }
+            }
+        }
+
+        fn path(&self) -> &std::path::Path {
+            &self.0
+        }
+    }
+
+    impl Drop for AttachmentScratch {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.0);
+        }
+    }
+
+    fn pr_with_base_repo(number: i64) -> String {
+        serde_json::json!({
+            "number": number,
+            "state": "open",
+            "title": "routing",
+            "merged": false,
+            "base": {
+                "label": "main",
+                "repo": {"name": "repo", "owner": {"login": "owner"}}
+            },
+            "head": {"label": "feature"},
+            "requested_reviewers": []
+        })
+        .to_string()
+    }
+
+    fn attachment_metadata_json(name: &str, url: &str, size: i64) -> String {
+        serde_json::json!([{
+            "id": 9,
+            "name": name,
+            "size": size,
+            "browser_download_url": url
+        }])
+        .to_string()
+    }
+
+    async fn route_attachment_command(args: &[&str]) -> PrCommand {
+        let mut full = vec!["fj", "pr", "attachment"];
+        full.extend_from_slice(args);
+        let app = crate::App::try_parse_from(full).expect("parse attachment command");
+        match app.command {
+            Command::Pr(cmd) => cmd,
+            _ => panic!("expected pr command"),
+        }
+    }
+
+    #[tokio::test]
+    async fn attachment_list_end_to_end_qualified_routing() {
+        let pr_body = pr_with_base_repo(7);
+        let assets = attachment_metadata_json("log.txt", "https://example.invalid/log.txt", 3);
+        let (base, seen, handle) = spawn_mock_server(
+            move |path, _query| match path {
+                "/api/v1/repos/owner/repo/pulls/7" => (200, pr_body.clone()),
+                "/api/v1/repos/owner/repo/issues/7/assets" => (200, assets.clone()),
+                _ => (404, r#"{"message":"not found"}"#.to_owned()),
+            },
+            2,
+        );
+
+        let cmd = route_attachment_command(&["list", "owner/repo#7"]).await;
+        let mut keys = crate::keys::KeyInfo::default();
+        let repo_info = RepoInfo::get_current(Some(base.as_str()), cmd.repo(), None, &keys)
+            .expect("resolve repo");
+        let repo = repo_info.name().expect("repo name").clone();
+        assert_eq!((repo.owner(), repo.name()), ("owner", "repo"));
+
+        let api = test_api(&base);
+        let PrSubcommand::Attachment(attachment) = cmd.command else {
+            panic!("expected attachment command");
+        };
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        super::run_attachment_command(
+            attachment.command,
+            &repo,
+            &api,
+            &mut keys,
+            repo_info.host_url(),
+            &mut stdout,
+            &mut stderr,
+        )
+        .await
+        .expect("list");
+
+        let text = String::from_utf8(stdout).expect("utf8");
+        assert!(text.contains("log.txt"), "{text}");
+        assert!(text.starts_with("9\t3\tlog.txt\t"), "{text}");
+        assert!(
+            stderr.is_empty(),
+            "list must not write stderr: {:?}",
+            String::from_utf8_lossy(&stderr)
+        );
+
+        handle.join().expect("mock server");
+        let seen = seen.lock().expect("seen lock").clone();
+        assert_eq!(seen.len(), 2, "{seen:?}");
+        assert!(seen[0].contains("/repos/owner/repo/pulls/7"), "{seen:?}");
+        assert!(
+            seen[1].contains("/repos/owner/repo/issues/7/assets"),
+            "{seen:?}"
+        );
+    }
+
+    #[tokio::test]
+    async fn attachment_download_end_to_end_qualified_routing() {
+        let scratch = AttachmentScratch::new("download");
+        let output = scratch.path().join("log.txt");
+        let binary = b"payload".to_vec();
+        let expected_binary = binary.clone();
+        let pr_body = pr_with_base_repo(7);
+        let base_slot: Arc<Mutex<String>> = Arc::new(Mutex::new(String::new()));
+        let base_slot_for_handler = Arc::clone(&base_slot);
+        let binary_len = binary.len() as i64;
+        let (base, seen, handle) = spawn_mock_server(
+            move |path, _query| match path {
+                "/api/v1/repos/owner/repo/pulls/7" => (200, pr_body.clone()),
+                "/api/v1/repos/owner/repo/issues/7/assets" => {
+                    let base = base_slot_for_handler.lock().expect("base slot").clone();
+                    (
+                        200,
+                        attachment_metadata_json(
+                            "log.txt",
+                            &format!("{base}/files/log.txt"),
+                            binary_len,
+                        ),
+                    )
+                }
+                "/files/log.txt" => (
+                    200,
+                    String::from_utf8(binary.clone()).expect("binary is utf8"),
+                ),
+                _ => (404, r#"{"message":"not found"}"#.to_owned()),
+            },
+            3,
+        );
+        *base_slot.lock().expect("base slot") = base.clone();
+
+        let output_arg = output.to_string_lossy().into_owned();
+        let cmd =
+            route_attachment_command(&["download", "owner/repo#7", "log.txt", "-o", &output_arg])
+                .await;
+        let mut keys = crate::keys::KeyInfo::default();
+        let repo_info = RepoInfo::get_current(Some(base.as_str()), cmd.repo(), None, &keys)
+            .expect("resolve repo");
+        let repo = repo_info.name().expect("repo name").clone();
+        let api = test_api(&base);
+        let base_url = url::Url::parse(&base).expect("base url");
+        let PrSubcommand::Attachment(attachment) = cmd.command else {
+            panic!("expected attachment command");
+        };
+        let mut stdout = Vec::new();
+        let mut stderr = Vec::new();
+        super::run_attachment_command(
+            attachment.command,
+            &repo,
+            &api,
+            &mut keys,
+            &base_url,
+            &mut stdout,
+            &mut stderr,
+        )
+        .await
+        .expect("download");
+
+        assert!(
+            stdout.is_empty(),
+            "download must not write stdout: {:?}",
+            String::from_utf8_lossy(&stdout)
+        );
+        assert!(
+            String::from_utf8_lossy(&stderr).contains("saved"),
+            "download notice belongs on stderr: {:?}",
+            String::from_utf8_lossy(&stderr)
+        );
+        assert_eq!(
+            std::fs::read(&output).expect("read output"),
+            expected_binary
+        );
+        handle.join().expect("mock server");
+        let seen = seen.lock().expect("seen lock").clone();
+        assert_eq!(seen.len(), 3, "{seen:?}");
+        assert!(seen[0].contains("/repos/owner/repo/pulls/7"), "{seen:?}");
+        assert!(
+            seen[1].contains("/repos/owner/repo/issues/7/assets"),
+            "{seen:?}"
+        );
+        assert!(seen[2].contains("/files/log.txt"), "{seen:?}");
+    }
+
+    fn inference_repo(label: &str) -> (AttachmentScratch, git2::Repository, String) {
+        let scratch = AttachmentScratch::new(label);
+        let repo = git2::Repository::init(scratch.path()).expect("init repo");
+        let signature = git2::Signature::now("test", "test@example.invalid").expect("signature");
+        let tree_id = repo.index().expect("index").write_tree().expect("tree");
+        let tree = repo.find_tree(tree_id).expect("find tree");
+        let commit = repo
+            .commit(Some("HEAD"), &signature, &signature, "initial", &tree, &[])
+            .expect("commit");
+        let commit = repo.find_commit(commit).expect("find commit");
+        repo.branch("feature", &commit, false).expect("branch");
+        repo.set_head("refs/heads/feature").expect("head");
+        repo.checkout_head(Some(git2::build::CheckoutBuilder::new().force()))
+            .expect("checkout");
+        repo.config()
+            .expect("config")
+            .set_str("branch.feature.merge", "refs/heads/feature")
+            .expect("merge config");
+        drop(tree);
+        drop(commit);
+        (scratch, repo, "feature".to_owned())
+    }
+
+    #[tokio::test]
+    async fn attachment_list_infers_pr_from_current_branch() {
+        let repo_body = serde_json::json!({
+            "name": "repo",
+            "full_name": "owner/repo",
+            "default_branch": "main",
+            "owner": {"login": "owner"}
+        })
+        .to_string();
+        let pr_body = serde_json::json!({
+            "number": 7,
+            "state": "open",
+            "title": "inferred",
+            "base": {
+                "label": "main",
+                "repo": {"name": "repo", "owner": {"login": "owner"}}
+            },
+            "head": {"label": "feature"},
+            "requested_reviewers": []
+        })
+        .to_string();
+        let assets = attachment_metadata_json("log.txt", "https://example.invalid/log.txt", 3);
+        let (base, seen, handle) = spawn_mock_server(
+            move |path, _query| match path {
+                "/api/v1/repos/owner/repo" => (200, repo_body.clone()),
+                "/api/v1/repos/owner/repo/pulls/main/feature" => (200, pr_body.clone()),
+                "/api/v1/repos/owner/repo/issues/7/assets" => (200, assets.clone()),
+                _ => (404, r#"{"message":"not found"}"#.to_owned()),
+            },
+            3,
+        );
+
+        let (_scratch, local_repo, branch) = inference_repo("inference");
+        assert_eq!(
+            local_repo
+                .head()
+                .expect("head")
+                .shorthand()
+                .expect("branch name"),
+            branch
+        );
+        let api = test_api(&base);
+        let repo = crate::repo::RepoName::new("owner".to_owned(), "repo".to_owned());
+        let pr = guess_pr_in(&local_repo, &repo, &api)
+            .await
+            .expect("infer pr");
+        let number = pr.number.expect("number");
+        let canonical = repo_name_from_pr(&pr).expect("base repo");
+        let attachments = attachments::list_pr_attachments(&canonical, &api, number)
+            .await
+            .expect("list");
+        assert_eq!(attachments.len(), 1);
+
+        handle.join().expect("mock server");
+        let seen = seen.lock().expect("seen lock").clone();
+        assert_eq!(seen.len(), 3, "{seen:?}");
+        assert!(seen[0].contains("/repos/owner/repo"), "{seen:?}");
+        assert!(
+            seen[1].contains("/repos/owner/repo/pulls/main/feature"),
+            "{seen:?}"
+        );
+        assert!(
+            seen[2].contains("/repos/owner/repo/issues/7/assets"),
+            "{seen:?}"
         );
     }
 }
